@@ -1,98 +1,95 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useLoginMutation } from "@/redux/features/auth/authApi";
-import { verifyToken } from "@/utils/verifyToken";
-import { setUser, TUser } from "@/redux/features/auth/authSlice";
-import { useAppDispatch } from "@/redux/hooks";
+import { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
+import axios from 'axios';
+import { RootState } from '@/redux/store';
+import FieldCard from '@/components/farmerDashboard/FieldCard';
+import TrendsSection from '@/components/farmerDashboard/TrendsSection';
+import AlertSection from '@/components/farmerDashboard/AlertSection';
+import { TField } from '@/types/types';
+import { initializeMqttClient } from '@/mqtt/mqtt.config';
 
-export default function HomePage() {
-  const [phone, setPhone] = useState("");
-  const [password, setPassword] = useState("");
-  const dispatch = useAppDispatch();
+export default function FarmerDashboard() {
+  const [fields, setFields] = useState<TField[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { token } = useSelector((state: RootState) => state.auth);
 
-  const [login, { isLoading }] = useLoginMutation();
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    try {
-      const result = await login({ phone, password }).unwrap();
-      console.log("Login success:", result);
-
-      if (result?.data?.accessToken) {
-        localStorage.setItem("accessToken", result?.data?.accessToken);
-        const user = verifyToken(result.data.accessToken) as TUser;
-        dispatch(setUser({ user, token: result.data.accessToken }));
+  useEffect(() => {
+    // Fetch fields from API
+    const fetchFields = async () => {
+      try {
+        const response = await axios.get('http://localhost:5100/field/myFields', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setFields(response.data.data || []);
+        setLoading(false);
+      } catch (err: any) {
+        setError(err.response?.data?.message || 'Failed to fetch fields');
+        setLoading(false);
       }
+    };
 
-      // Redirect or update state here
-    } catch (err: any) {
-      console.error("Login failed:", err.message || err);
+    if (token) {
+      fetchFields();
+    } else {
+      setError('No access token found. Please log in.');
+      setLoading(false);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    // Initialize MQTT client for topic_farmer1
+    initializeMqttClient();
+
+  }, []);
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex flex-col md:flex-row justify-center items-center h-[80vh] gap-8">
-        <div className="w-[40%]">
-          <h2 className="text-3xl font-bold mb-4 text-green-700">
-            Welcome to FarmFlow
-          </h2>
-          <p className="text-gray-700 text-lg">
-            FarmFlow is your smart farming companion. Monitor field temperature,
-            humidity, soil moisture, and light intensity in real-time. Get
-            AI-driven insights tailored to your crop.
-          </p>
-        </div>
-        <div className="flex-1 max-w-md">
-          <div className="border shadow-md rounded-lg p-6 border-gray-200">
-            <h3 className="text-2xl font-semibold mb-6 text-green-700">
-              Login
-            </h3>
-            <form className="space-y-4" onSubmit={handleLogin}>
-              <div>
-                <label
-                  htmlFor="phone"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Phone Number
-                </label>
-                <input
-                  type="text"
-                  id="phone"
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="mt-1 w-full px-4 py-2 bg-green-50  rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none text-gray-700"
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="password"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Password
-                </label>
-                <input
-                  // type="password"
-                  id="password"
-                  defaultValue="admin@farmflow"
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="mt-1 w-full px-4 py-2 bg-green-50 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none text-gray-700"
-                />
-              </div>
-              <button
-                type="submit"
-                className="w-full bg-green-800 text-white py-2 rounded-md hover:bg-green-700 transition-colors duration-200"
-                disabled={isLoading}
-              >
-                {isLoading ? "Logging in..." : "Login"}
-              </button>
-            </form>
+    <div className="container mx-auto px-4 py-8 bg-gray-100 min-h-screen">
+      {/* Field Cards Grid */}
+      <section className="mb-8">
+        <h2 className="text-2xl w-60 flex justify-center rounded-md shadow-md bg-white font-semibold text-green-800 mb-6">
+          Farmer Dashboard
+        </h2>
+        {loading ? (
+          <div className="text-center">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-green-600"></div>
+            <span className="ml-3 text-gray-600 text-lg">Loading fields...</span>
           </div>
-        </div>
-      </div>
+        ) : error ? (
+          <p className="text-red-600 text-center text-lg font-medium">{error}</p>
+        ) : fields.length === 0 ? (
+          <p className="text-gray-600 text-center text-lg font-medium">No fields found.</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {fields.map((field) => (
+              <FieldCard
+                key={field.fieldId}
+                field={{
+                  fieldId: field.fieldId,
+                  fieldName: field.fieldName,
+                  fieldImage: field.fieldImage,
+                  fieldSizeInAcres: field.fieldSizeInAcres,
+                  soilType: field.soilType,
+                  region: field.region,
+                  fieldStatus: field.fieldStatus,
+                  updatedAt: field.updatedAt,
+                }}
+              />
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Alert Notifications Section */}
+      <AlertSection />
+      {/* Trend Charts Section */}
+      <TrendsSection />
     </div>
   );
 }

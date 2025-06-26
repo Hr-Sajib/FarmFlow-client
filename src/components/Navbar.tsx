@@ -20,6 +20,9 @@ export default function Navbar() {
           <Link href="/report" className="hover:underline">
             Report
           </Link>
+          <Link href="/login" className="hover:underline">
+            <b>Login</b>
+          </Link>
         </div>
       </div>
     </nav>

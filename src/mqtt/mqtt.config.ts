@@ -57,7 +57,7 @@ export const initializeMqttClient = (): void => {
       const data = JSON.parse(cleaned);
 
       // ✅ Log received data
-      console.log(`[MQTT][${new Date().toISOString()}][${topic}]`, data);
+      console.log(`SensorData:[${new Date().toISOString()}][${topic}]`, data);
     } catch (err) {
       console.error(`Error parsing MQTT message from ${topic}:`, err);
     }

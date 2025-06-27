@@ -2,17 +2,7 @@
 
 import { MapPin, Clock, Thermometer, Droplet, Sprout, Sun, ArrowRight } from 'lucide-react';
 import Image from 'next/image';
-
-type TField = {
-  fieldId: string;
-  fieldName: string;
-  fieldImage: string;
-  fieldSizeInAcres: number;
-  soilType: string;
-  region: string;
-  fieldStatus: string;
-  updatedAt: string;
-};
+import { TField } from '@/types/types';
 
 type FieldCardProps = {
   key: string;
@@ -70,25 +60,33 @@ export default function FieldCard({ field }: FieldCardProps) {
           <div className="bg-gray-50 shadow-sm rounded-md p-3 border-l-4 border-red-500">
             <div className="flex items-center gap-2">
               <Thermometer className="h-5 w-5 text-red-500" />
-              <span className="text-sm font-medium text-gray-700">Temperature: 32°C</span>
+              <span className="text-sm font-medium text-gray-700">
+                Temperature: {(field.sensorData?.temperature || 0).toFixed(2)}°C
+              </span>
             </div>
           </div>
           <div className="bg-gray-50 shadow-sm rounded-md p-3 border-l-4 border-blue-500">
             <div className="flex items-center gap-2">
               <Droplet className="h-5 w-5 text-blue-500" />
-              <span className="text-sm font-medium text-gray-700">Humidity: 65%</span>
+              <span className="text-sm font-medium text-gray-700">
+                Humidity: {(field.sensorData?.humidity || 0).toFixed(2)}%
+              </span>
             </div>
           </div>
           <div className="bg-gray-50 shadow-sm rounded-md p-3 border-l-4 border-green-500">
             <div className="flex items-center gap-2">
               <Sprout className="h-5 w-5 text-green-500" />
-              <span className="text-sm font-medium text-gray-700">Soil Moisture: 45%</span>
+              <span className="text-sm font-medium text-gray-700">
+                Soil Moisture: {(field.sensorData?.soilMoisture || 0).toFixed(2)}%
+              </span>
             </div>
           </div>
           <div className="bg-gray-50 shadow-sm rounded-md p-3 border-l-4 border-yellow-500">
             <div className="flex items-center gap-2">
               <Sun className="h-5 w-5 text-yellow-500" />
-              <span className="text-sm font-medium text-gray-700">Light Intensity: 1200 lux</span>
+              <span className="text-sm font-medium text-gray-700">
+                Light Intensity: {(field.sensorData?.lightIntensity || 0).toFixed(2)} lux
+              </span>
             </div>
           </div>
         </div>

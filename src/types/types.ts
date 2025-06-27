@@ -13,4 +13,10 @@ export type TField = {
   createdAt: string;
   updatedAt: string;
   isDeleted: boolean;
+  sensorData?: {
+    temperature: number;
+    humidity: number;
+    soilMoisture: number;
+    lightIntensity: number;
+  };
 };

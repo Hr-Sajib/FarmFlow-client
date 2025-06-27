@@ -10,8 +10,20 @@ type FieldCardProps = {
 };
 
 export default function FieldCard({ field }: FieldCardProps) {
+  const isActive = field.fieldStatus === 'active';
+
   return (
-    <div className="bg-white rounded-xl shadow-lg overflow-hidden transition-transform hover:scale-105 duration-300">
+    <div className="relative bg-gray-100 rounded-xl shadow-lg overflow-hidden transition-transform hover:scale-105 duration-300">
+      {/* Gradient Border (Pseudo-element) */}
+      <div
+        className="absolute inset-0 rounded-xl"
+        style={{
+          background: 'linear-gradient(to bottom, #f97316, #22c55e)', // Orange to green gradient, top to bottom
+          padding: '3px', // Border width
+        }}
+      >
+        <div className="bg-gray-100 rounded-[10px] h-full w-full"></div>
+      </div>
       {/* Field Image */}
       <div className="relative">
         <Image
@@ -27,7 +39,7 @@ export default function FieldCard({ field }: FieldCardProps) {
         </h3>
       </div>
       {/* Field Details */}
-      <div className="p-6">
+      <div className="p-6 relative z-10">
         <div className="flex justify-between items-center mb-4">
           <p className="text-sm text-gray-600 flex items-center gap-2">
             <MapPin className="h-4 w-4 text-gray-500" />
@@ -60,40 +72,43 @@ export default function FieldCard({ field }: FieldCardProps) {
           <div className="bg-gray-50 shadow-sm rounded-md p-3 border-l-4 border-red-500">
             <div className="flex items-center gap-2">
               <Thermometer className="h-5 w-5 text-red-500" />
-              <span className="text-sm font-medium text-gray-700">
-                Temperature: {(field.sensorData?.temperature || 0).toFixed(2)}°C
+              <span className="text-sm font-bold text-red-500">
+                {(field.sensorData?.temperature || 0).toFixed(2)}°C
               </span>
             </div>
           </div>
           <div className="bg-gray-50 shadow-sm rounded-md p-3 border-l-4 border-blue-500">
             <div className="flex items-center gap-2">
-              <Droplet className="h-5 w-5 text-blue-500" />
-              <span className="text-sm font-medium text-gray-700">
-                Humidity: {(field.sensorData?.humidity || 0).toFixed(2)}%
+              <Droplet className="h-5 w-5 text-blue-600" />
+              <span className="text-sm font-bold text-blue-500">
+                {(field.sensorData?.humidity || 0).toFixed(2)}%
               </span>
             </div>
           </div>
           <div className="bg-gray-50 shadow-sm rounded-md p-3 border-l-4 border-green-500">
             <div className="flex items-center gap-2">
-              <Sprout className="h-5 w-5 text-green-500" />
-              <span className="text-sm font-medium text-gray-700">
-                Soil Moisture: {(field.sensorData?.soilMoisture || 0).toFixed(2)}%
+              <Sprout className="h-5 w-5 text-green-700" />
+              <span className="text-sm font-bold text-green-700">
+                {(field.sensorData?.soilMoisture || 0).toFixed(2)}%
               </span>
             </div>
           </div>
           <div className="bg-gray-50 shadow-sm rounded-md p-3 border-l-4 border-yellow-500">
             <div className="flex items-center gap-2">
-              <Sun className="h-5 w-5 text-yellow-500" />
-              <span className="text-sm font-medium text-gray-700">
-                Light Intensity: {(field.sensorData?.lightIntensity || 0).toFixed(2)} lux
+              <Sun className="h-5 w-5 text-yellow-700" />
+              <span className="text-sm font-bold text-yellow-600">
+                {(field.sensorData?.lightIntensity || 0).toFixed(2)} lux
               </span>
             </div>
           </div>
         </div>
         {/* View Details Button */}
         <a
-          href={`/fields/${field.fieldId}`}
-          className="inline-flex items-center gap-2 bg-green-800 text-white py-2 px-4 rounded-md hover:bg-green-700 transition-colors duration-300 w-full justify-center text-sm font-medium"
+          href={isActive ? `/fields/${field.fieldId}` : undefined}
+          className={`inline-flex items-center gap-2 bg-green-800 text-white py-2 px-4 rounded-md transition-colors duration-300 w-full justify-center text-sm font-bold ${
+            isActive ? 'hover:bg-green-700' : 'opacity-50 cursor-not-allowed'
+          }`}
+          aria-disabled={!isActive}
         >
           View Details <ArrowRight className="h-4 w-4" />
         </a>

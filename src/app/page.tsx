@@ -1,47 +1,24 @@
 'use client';
-
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import axios from 'axios';
 import { RootState } from '@/redux/store';
 import FieldCard from '@/components/farmerDashboard/FieldCard';
 import TrendsSection from '@/components/farmerDashboard/TrendsSection';
 import AlertSection from '@/components/farmerDashboard/AlertSection';
 import { TField } from '@/types/types';
 import { initializeMqttClient, getMqttClient } from '@/mqtt/mqtt.config';
+import Image from 'next/image';
+import { useGetMyFieldsQuery } from '@/redux/features/fields/fieldsApi';
+import FarmerProfile from '@/components/farmerDashboard/farmerProfile';
 
 export default function FarmerDashboard() {
-  const [fields, setFields] = useState<TField[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [sensorDataMap, setSensorDataMap] = useState<{
     [fieldId: string]: TField['sensorData'];
   }>({});
   const { token } = useSelector((state: RootState) => state.auth);
-
-  useEffect(() => {
-    const fetchFields = async () => {
-      try {
-        const response = await axios.get('http://localhost:5100/field/myFields', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        setFields(response.data.data || []);
-        setLoading(false);
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to fetch fields');
-        setLoading(false);
-      }
-    };
-
-    if (token) {
-      fetchFields();
-    } else {
-      setError('No access token found. Please log in.');
-      setLoading(false);
-    }
-  }, [token]);
+  const { data: fields = [], isLoading, error } = useGetMyFieldsQuery(undefined, {
+    skip: !token, // Skip query if no token
+  });
 
   useEffect(() => {
     initializeMqttClient();
@@ -73,18 +50,42 @@ export default function FarmerDashboard() {
   }, []);
 
   return (
-    <div className="container mx-auto px-4 py-8 bg-gray-100 min-h-screen">
+    <div className="container mx-auto px-4 py-5 bg-white min-h-screen">
       <section className="mb-8">
-        <h2 className="text-2xl w-60 flex justify-center rounded-md shadow-md bg-white font-semibold text-green-800 mb-6">
-          Farmer Dashboard
-        </h2>
-        {loading ? (
-          <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-green-600"></div>
-            <span className="ml-3 text-gray-600 text-lg">Loading fields...</span>
+          <div className='flex h-16'>
+            <div className="bg-white flex items-center gap-1 bg-gradient-to-r to-green-100 from-white text-2xl w-60 justify-center rounded-md shadow-md font-semibold text-green-800 mb-6">
+            <Image
+              width={100}
+              height={100}
+              className="h-7 w-7"
+              alt="logo"
+              src="https://i.postimg.cc/pLYBKqTW/farmer-Icon.png"
+            />
+            <h2>Farmer Dashboard</h2>
+          </div>
+          <FarmerProfile/>
+        </div>
+        {isLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <div
+                key={index}
+                className="bg-white rounded-xl shadow-lg overflow-hidden animate-pulse"
+              >
+                <div className="h-48 bg-gray-300 w-full"></div>
+                <div className="p-6 space-y-4">
+                  <div className="h-4 bg-gray-300 rounded w-3/4"></div>
+                  <div className="h-3 bg-gray-300 rounded w-1/2"></div>
+                  <div className="h-3 bg-gray-300 rounded w-2/3"></div>
+                  <div className="h-10 bg-gray-300 rounded w-full mt-4"></div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : error ? (
-          <p className="text-red-600 text-center text-lg font-medium">{error}</p>
+          <p className="text-red-600 text-center text-lg font-medium">
+            {error ? 'Failed to fetch fields' : 'No access token found. Please log in.'}
+          </p>
         ) : fields.length === 0 ? (
           <p className="text-gray-600 text-center text-lg font-medium">No fields found.</p>
         ) : (
@@ -124,3 +125,4 @@ export default function FarmerDashboard() {
     </div>
   );
 }
+

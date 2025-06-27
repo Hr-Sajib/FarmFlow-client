@@ -20,3 +20,22 @@ export type TField = {
     lightIntensity: number;
   };
 };
+
+
+export type TUser = {
+  _id: string;
+  name: string;
+  farmerId: string;
+  email: string;
+  phone: string;
+  address: string;
+  passwordChangedAt: string | null;
+  role: string;
+  status: string;
+  fieldIds: string[];
+  isDeleted: boolean;
+  createdAt: string;
+  updatedAt: string;
+  photo: string;
+  __v: number;
+};

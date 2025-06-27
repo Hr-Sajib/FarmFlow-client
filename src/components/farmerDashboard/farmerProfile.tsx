@@ -5,27 +5,38 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/redux/store';
 import { setUser } from '@/redux/features/user/userSlice';
 import Image from 'next/image';
-import { useGetMeQuery } from '@/redux/features/user/userApi';
-
+import { useGetMeMutation } from '@/redux/features/user/userApi';
 
 export default function FarmerProfile() {
   const dispatch = useDispatch();
   const { user } = useSelector((state: RootState) => state.user);
   const { token } = useSelector((state: RootState) => state.auth);
+  const [getMe, { data, isLoading, error, isUninitialized, isSuccess, isError }] = useGetMeMutation();
 
-  const { data, isLoading, error, isSuccess } = useGetMeQuery(undefined, {
-    skip: !token, // only fetch if token is present
-  });
+
+  console.log('User fetched:', data);
 
   useEffect(() => {
-    if (data) {
-      dispatch(setUser(data));
-      console.log('User data fetched and dispatched:', data);
+    if (token) {
+      console.log('Triggering getMe mutation...');
+      getMe()
+        .unwrap()
+        .then((userData) => {
+          console.log('User data fetched:', userData);
+          dispatch(setUser(userData.data));
+        })
+        .catch((err) => {
+          console.error('Failed to fetch user data:', err);
+        });
+    } else if (user) {
+      console.log('User data from Redux:', user);
+    } else {
+      console.warn('No auth token available for getMe request');
     }
-  }, [data, dispatch]);
+  }, [getMe, dispatch, token]);
 
   return (
-    <div className="w-[20vw] border">
+    <div className="w-[20vw]">
       {isLoading ? (
         <p className="text-gray-600 text-center">Loading user profile...</p>
       ) : error ? (
@@ -37,7 +48,8 @@ export default function FarmerProfile() {
       ) : !user ? (
         <p className="text-gray-600 text-center">No user data found.</p>
       ) : (
-        <div className="bg-white p-6 rounded-lg flex shadow-md max-w-md mx-auto">
+        // small profile part 
+        <div className="bg-white h-10 ml-2 hover:bg-green-100 hover:shadow-md rounded-full flex gap-2.5 w-40 px-2 mx-auto">
           <Image
             src={user.photo || 'https://i.postimg.cc/4yq4jX4W/default-avatar.png'}
             alt="photo loading"
@@ -45,9 +57,9 @@ export default function FarmerProfile() {
             height={100}
             className="w-10 h-10 rounded-full object-cover"
           />
-          <div className="ml-4">
+          <div className="">
             <p className="font-semibold">{user.name}</p>
-            <p className="text-sm text-gray-600">{user.phone}</p>
+            <p className="text-[13px] font-bold text-gray-600">{user.phone}</p>
           </div>
         </div>
       )}

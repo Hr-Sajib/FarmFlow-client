@@ -1,17 +1,18 @@
-"use client";
+'use client';
 
-import useScrollDirection from "@/redux/hooks";
-import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
-import Image from "next/image";
-
+import { usePathname } from 'next/navigation';
+import useScrollDirection from '@/redux/hooks';
+import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
 
 export default function Navbar() {
   const scrollDirection = useScrollDirection();
+  const pathname = usePathname();
 
   return (
     <AnimatePresence>
-      {scrollDirection === "up" && (
+      {scrollDirection === 'up' && (
         <motion.nav
           initial={{ y: -80 }}
           animate={{ y: 0 }}
@@ -21,15 +22,51 @@ export default function Navbar() {
         >
           <div className="max-w-6xl mx-auto flex justify-between items-center">
             <div className="flex items-center gap-1">
-              <Image width={100} height={100} className="h-9 w-9" alt="logo" src="https://i.postimg.cc/Xq3PnTG5/logo1.png"></Image>
-              <h1 className="text-xl font-bold tracking-wide"   style={{ fontFamily: "var(--font-kaushan-script)", color: "rgb(59, 107, 4)" }}>FarmFlow</h1>
+              <Image
+                width={100}
+                height={100}
+                className="h-9 w-9"
+                alt="logo"
+                src="https://i.postimg.cc/Xq3PnTG5/logo1.png"
+              />
+              <h1
+                className="text-xl font-bold tracking-wide"
+                style={{ fontFamily: 'var(--font-kaushan-script)', color: 'rgb(59, 107, 4)' }}
+              >
+                FarmFlow
+              </h1>
             </div>
             <div className="space-x-4 text-sm sm:text-base">
-              <Link href="/" className="hover:underline">Dashboard</Link>
-              <Link href="/forum" className="hover:underline">Forum</Link>
-              <Link href="/about" className="hover:underline">About</Link>
-              <Link href="/report" className="hover:underline">Report</Link>
-              <Link href="/login" className="hover:underline font-semibold">Login</Link>
+              <Link
+                href="/"
+                className={`hover:underline ${pathname === '/' ? 'text-green-700' : ''}`}
+              >
+                Dashboard
+              </Link>
+              <Link
+                href="/forum"
+                className={`hover:underline ${pathname === '/forum' ? 'text-green-700' : ''}`}
+              >
+                Forum
+              </Link>
+              <Link
+                href="/about"
+                className={`hover:underline ${pathname === '/about' ? 'text-green-700' : ''}`}
+              >
+                About
+              </Link>
+              <Link
+                href="/report"
+                className={`hover:underline ${pathname === '/report' ? 'text-green-700' : ''}`}
+              >
+                Report
+              </Link>
+              <Link
+                href="/login"
+                className={`hover:underline font-semibold ${pathname === '/login' ? 'text-green-700' : ''}`}
+              >
+                Login
+              </Link>
             </div>
           </div>
         </motion.nav>
@@ -37,4 +74,3 @@ export default function Navbar() {
     </AnimatePresence>
   );
 }
-

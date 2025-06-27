@@ -20,8 +20,8 @@ export default function Navbar() {
           transition={{ duration: 0.3 }}
           className="fixed top-0 w-full bg-green-100 text-black px-6 py-4 shadow-md z-50"
         >
-          <div className="max-w-6xl mx-auto flex justify-between items-center">
-            <div className="flex items-center gap-1">
+          <div className="max-w-6xl mx-auto flex justify-between font-semibold items-center">
+            <Link href="/" className="flex items-center gap-1">
               <Image
                 width={100}
                 height={100}
@@ -35,8 +35,8 @@ export default function Navbar() {
               >
                 FarmFlow
               </h1>
-            </div>
-            <div className="space-x-4 text-sm sm:text-base">
+            </Link>
+            <div className="space-x-4 text-sm sm:text-base text-gray-700">
               <Link
                 href="/"
                 className={`hover:underline ${pathname === '/' ? 'text-green-700' : ''}`}
@@ -63,7 +63,7 @@ export default function Navbar() {
               </Link>
               <Link
                 href="/login"
-                className={`hover:underline font-semibold ${pathname === '/login' ? 'text-green-700' : ''}`}
+                className={`hover:underline ${pathname === '/login' ? 'text-green-700' : ''}`}
               >
                 Login
               </Link>

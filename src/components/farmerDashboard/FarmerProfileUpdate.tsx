@@ -16,9 +16,10 @@ interface FarmerProfileUpdateProps {
 export default function FarmerProfileUpdate({ isOpen, onClose }: FarmerProfileUpdateProps) {
   const dispatch = useDispatch();
   const { user } = useSelector((state: RootState) => state.user);
-  const [updateUser, { isLoading, error, isSuccess }] = useUpdateUserMutation();
+  const [updateUser, { isLoading, error }] = useUpdateUserMutation();
 
   const [formData, setFormData] = useState({
+    _id:'',
     name: '',
     email: '',
     phone: '',
@@ -29,6 +30,7 @@ export default function FarmerProfileUpdate({ isOpen, onClose }: FarmerProfileUp
   useEffect(() => {
     if (user) {
       setFormData({
+        _id: user._id, // ✅ include _id
         name: user.name || '',
         email: user.email || '',
         phone: user.phone || '',
@@ -38,6 +40,7 @@ export default function FarmerProfileUpdate({ isOpen, onClose }: FarmerProfileUp
     }
   }, [user]);
 
+  console.log("User to up: ",user)
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -66,10 +69,30 @@ export default function FarmerProfileUpdate({ isOpen, onClose }: FarmerProfileUp
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-lg shadow-md max-w-md w-full mx-4">
         <h2 className="text-xl font-semibold mb-4 text-center">Update Profile</h2>
         <form onSubmit={handleSubmit}>
+          
+          {formData.photo && (
+            <div className="flex justify-center">
+              <Image
+                src={formData.photo || 'https://i.postimg.cc/4yq4jX4W/default-avatar.png'}
+                alt="Profile preview"
+                width={100}
+                height={100}
+                className="w-20 h-20 rounded-full border-3 border-green-700 object-cover"
+              />
+            </div>
+          )}
+          {error && (
+            <p className="text-red-600 text-sm text-center mb-4">
+              {'status' in error && error.status === 401
+                ? 'You are not authorized. Please log in.'
+                : 'Failed to update profile.'}
+            </p>
+          )}
+          
           <div className="mb-4">
             <label htmlFor="name" className="block text-sm font-medium text-gray-700">
               Name
@@ -80,7 +103,22 @@ export default function FarmerProfileUpdate({ isOpen, onClose }: FarmerProfileUp
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className="mt-1 w-full p-2 border rounded-md focus:ring-green-500 focus:border-green-500"
+              className="mt-1 w-full p-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+              required
+            />
+          </div>
+        <div className="mb-4">
+            <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+              Phone
+            </label>
+            <input
+              type="tel"
+              id="phone"
+              name="phone"
+              disabled
+              value={formData.phone}
+              onChange={handleChange}
+              className="mt-1 w-full p-2 border border-gray-300 bg-gray-200 rounded-md focus:ring-green-500 focus:border-green-500"
               required
             />
           </div>
@@ -94,24 +132,11 @@ export default function FarmerProfileUpdate({ isOpen, onClose }: FarmerProfileUp
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className="mt-1 w-full p-2 border rounded-md focus:ring-green-500 focus:border-green-500"
+              className="mt-1 w-full p-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
               required
             />
           </div>
-          <div className="mb-4">
-            <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
-              Phone
-            </label>
-            <input
-              type="tel"
-              id="phone"
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              className="mt-1 w-full p-2 border rounded-md focus:ring-green-500 focus:border-green-500"
-              required
-            />
-          </div>
+
           <div className="mb-4">
             <label htmlFor="address" className="block text-sm font-medium text-gray-700">
               Address
@@ -122,7 +147,7 @@ export default function FarmerProfileUpdate({ isOpen, onClose }: FarmerProfileUp
               name="address"
               value={formData.address}
               onChange={handleChange}
-              className="mt-1 w-full p-2 border rounded-md focus:ring-green-500 focus:border-green-500"
+              className="mt-1 w-full p-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
             />
           </div>
           <div className="mb-4">
@@ -135,28 +160,11 @@ export default function FarmerProfileUpdate({ isOpen, onClose }: FarmerProfileUp
               name="photo"
               value={formData.photo}
               onChange={handleChange}
-              className="mt-1 w-full p-2 border rounded-md focus:ring-green-500 focus:border-green-500"
+              className="mt-1 w-full p-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
               placeholder="https://example.com/photo.jpg"
             />
           </div>
-          {formData.photo && (
-            <div className="mb-4 flex justify-center">
-              <Image
-                src={formData.photo || 'https://i.postimg.cc/4yq4jX4W/default-avatar.png'}
-                alt="Profile preview"
-                width={100}
-                height={100}
-                className="w-16 h-16 rounded-full object-cover"
-              />
-            </div>
-          )}
-          {error && (
-            <p className="text-red-600 text-sm text-center mb-4">
-              {'status' in error && error.status === 401
-                ? 'You are not authorized. Please log in.'
-                : 'Failed to update profile.'}
-            </p>
-          )}
+          
           <div className="flex justify-end gap-2">
             <button
               type="button"
@@ -168,7 +176,7 @@ export default function FarmerProfileUpdate({ isOpen, onClose }: FarmerProfileUp
             <button
               type="submit"
               disabled={isLoading}
-              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
+              className="px-4 py-2 bg-green-800 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
             >
               {isLoading ? 'Updating...' : 'Update'}
             </button>

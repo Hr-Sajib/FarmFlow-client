@@ -1,67 +1,68 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/redux/store';
 import { setUser } from '@/redux/features/user/userSlice';
 import Image from 'next/image';
 import { useGetMeMutation } from '@/redux/features/user/userApi';
+import FarmerProfileUpdate from './FarmerProfileUpdate';
 
 export default function FarmerProfile() {
   const dispatch = useDispatch();
   const { user } = useSelector((state: RootState) => state.user);
   const { token } = useSelector((state: RootState) => state.auth);
-  const [getMe, { data, isLoading, error, isUninitialized, isSuccess, isError }] = useGetMeMutation();
+  const [getMe] = useGetMeMutation();
+  const [isOpen, setIsOpen] = useState(false);
 
-
-  console.log('User fetched:', data);
-
-  useEffect(() => {
+  const fetchUser = useCallback(() => {
     if (token) {
-      console.log('Triggering getMe mutation...');
       getMe()
         .unwrap()
         .then((userData) => {
-          console.log('User data fetched:', userData);
           dispatch(setUser(userData.data));
         })
         .catch((err) => {
           console.error('Failed to fetch user data:', err);
         });
-    } else if (user) {
-      console.log('User data from Redux:', user);
-    } else {
-      console.warn('No auth token available for getMe request');
     }
   }, [getMe, dispatch, token]);
 
+  useEffect(() => {
+    fetchUser();
+  }, [fetchUser]);
+
+  const handleCloseModal = () => {
+    setIsOpen(false);
+    fetchUser(); // ✅ Refresh user data after modal closes
+  };
+
   return (
     <div className="w-[20vw]">
-      {isLoading ? (
-        <p className="text-gray-600 text-center">Loading user profile...</p>
-      ) : error ? (
-        <p className="text-red-600 text-center">
-          {'status' in error && error.status === 401
-            ? 'You are not authorized. Please log in.'
-            : 'Failed to load user profile.'}
-        </p>
-      ) : !user ? (
-        <p className="text-gray-600 text-center">No user data found.</p>
+      {user ? (
+        <>
+          <button
+            onClick={() => setIsOpen(true)}
+            className="bg-white h-10 ml-2 px-[2px] hover:border hover:shadow-md rounded-2xl border-gray-300 items-center flex gap-2.5 w-40 px-1.4 mx-auto transition-all duration-150"
+          >
+            <Image
+              src={user.photo || 'https://i.postimg.cc/4yq4jX4W/default-avatar.png'}
+              alt="User Photo"
+              width={100}
+              height={100}
+              className="w-9 h-9 rounded-full object-cover"
+            />
+            <div>
+              <p className="font-semibold text-left">{user.name}</p>
+              <p className="text-[13px] font-bold text-gray-600">{user.phone}</p>
+            </div>
+          </button>
+
+          {/* ✅ Modal component with proper close handler */}
+          <FarmerProfileUpdate isOpen={isOpen} onClose={handleCloseModal} />
+        </>
       ) : (
-        // small profile part 
-        <div className="bg-white h-10 ml-2 hover:bg-green-100 hover:shadow-md rounded-full flex gap-2.5 w-40 px-2 mx-auto">
-          <Image
-            src={user.photo || 'https://i.postimg.cc/4yq4jX4W/default-avatar.png'}
-            alt="photo loading"
-            width={100}
-            height={100}
-            className="w-10 h-10 rounded-full object-cover"
-          />
-          <div className="">
-            <p className="font-semibold">{user.name}</p>
-            <p className="text-[13px] font-bold text-gray-600">{user.phone}</p>
-          </div>
-        </div>
+        <p className="text-gray-600 text-center">No user data found.</p>
       )}
     </div>
   );

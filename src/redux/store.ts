@@ -1,8 +1,9 @@
-import { configureStore } from '@reduxjs/toolkit';
+import { configureStore, Middleware } from '@reduxjs/toolkit';
 import { baseApi } from './api/baseApi';
 import authReducer from './features/auth/authSlice';
 import fieldsReducer from './features/fields/fieldsSlice';
 import userReducer from './features/user/userSlice';
+import postReducer from './features/posts/postSlice';
 import { persistReducer, persistStore } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import { combineReducers } from '@reduxjs/toolkit';
@@ -10,7 +11,7 @@ import { combineReducers } from '@reduxjs/toolkit';
 const persistConfig = {
   key: 'root',
   storage,
-  whitelist: ['auth', 'fields', 'user'], // Include user for persistence
+  whitelist: ['auth', 'fields', 'user', 'posts'],
 };
 
 const rootReducer = combineReducers({
@@ -18,6 +19,7 @@ const rootReducer = combineReducers({
   auth: authReducer,
   fields: fieldsReducer,
   user: userReducer,
+  posts: postReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
@@ -27,7 +29,7 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: false,
-    }).concat(baseApi.middleware),
+    }).concat(baseApi.middleware as Middleware),
   devTools: process.env.NODE_ENV !== 'production',
 });
 

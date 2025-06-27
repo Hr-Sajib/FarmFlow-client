@@ -39,3 +39,49 @@ export type TUser = {
   photo: string;
   __v: number;
 };
+
+
+export interface IPost {
+    _id?:string;
+    creatorName: string;
+    creatorPhoto: string;
+    creatorId: string;
+    postText: string;
+    postImage: string;
+    reactions: TReaction;
+    comments: TComment[];
+    postTopics: TPostTopic[];
+}
+
+export type TReaction = {
+    likes: {
+        count: number,
+        by: string[] 
+    };
+    dislikes: {
+        count: number,
+        by: string[]
+    };
+}
+
+export type TPostTopic =
+  | 'rice'
+  | 'potato'
+  | 'onion'
+  | 'disease'
+  | 'insect'
+  | 'fertilizer'
+  | 'irrigation'
+  | 'weather'
+  | 'harvest'
+  | 'equipment'
+  | 'market'
+  | 'pest'
+  | 'technology';
+
+
+export type TComment = {
+    commenterName: string;
+    commenterId: string;
+    commentText: string;
+}

@@ -9,7 +9,7 @@ import { TField } from '@/types/types';
 import { initializeMqttClient, getMqttClient } from '@/mqtt/mqtt.config';
 import Image from 'next/image';
 import { useGetMyFieldsQuery } from '@/redux/features/fields/fieldsApi';
-import FarmerProfile from '@/components/farmerDashboard/farmerProfile';
+
 
 export default function FarmerDashboard() {
   const [sensorDataMap, setSensorDataMap] = useState<{
@@ -63,7 +63,6 @@ export default function FarmerDashboard() {
             />
             <h2>Farmer Dashboard</h2>
           </div>
-          <FarmerProfile/>
         </div>
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/redux/store';
-import { setUser } from '@/redux/features/user/userSlice';
+import { setCurrentUser } from '@/redux/features/currentUser/currentUserSlice';
 import Image from 'next/image';
-import { useUpdateUserMutation } from '@/redux/features/user/userApi';
+import { useUpdateUserMutation } from '@/redux/features/currentUser/currentUserApi';
 // import { useUpdateUserMutation } from '@/redux/features/user/userApi';
 
 interface FarmerProfileUpdateProps {
@@ -15,7 +15,7 @@ interface FarmerProfileUpdateProps {
 
 export default function FarmerProfileUpdate({ isOpen, onClose }: FarmerProfileUpdateProps) {
   const dispatch = useDispatch();
-  const { user } = useSelector((state: RootState) => state.user);
+  const { currentUser } = useSelector((state: RootState) => state.currentUser);
   const [updateUser, { isLoading, error }] = useUpdateUserMutation();
 
   const [formData, setFormData] = useState({
@@ -28,19 +28,19 @@ export default function FarmerProfileUpdate({ isOpen, onClose }: FarmerProfileUp
   });
 
   useEffect(() => {
-    if (user) {
+    if (currentUser) {
       setFormData({
-        _id: user._id, // ✅ include _id
-        name: user.name || '',
-        email: user.email || '',
-        phone: user.phone || '',
-        address: user.address || '',
-        photo: user.photo || '',
+        _id: currentUser._id, // ✅ include _id
+        name: currentUser.name || '',
+        email: currentUser.email || '',
+        phone: currentUser.phone || '',
+        address: currentUser.address || '',
+        photo: currentUser.photo || '',
       });
     }
-  }, [user]);
+  }, [currentUser]);
 
-  console.log("User to up: ",user)
+  console.log("User to up: ",currentUser)
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -59,7 +59,7 @@ export default function FarmerProfileUpdate({ isOpen, onClose }: FarmerProfileUp
     try {
       const response = await updateUser(formData).unwrap();
       console.log('User updated:', response);
-      dispatch(setUser(response));
+      dispatch(setCurrentUser(response));
       onClose();
     } catch (err) {
       console.error('Failed to update user:', err);

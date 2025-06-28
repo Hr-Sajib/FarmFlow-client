@@ -1,4 +1,3 @@
-'use client';
 
 import { useState } from 'react';
 import { ThumbsUp, ThumbsDown } from 'lucide-react';
@@ -28,6 +27,7 @@ export default function PostCard({ post }: PostCardProps) {
     reactions,
     comments: initialComments,
     _id,
+    createdAt: time
   } = post;
 
 
@@ -107,7 +107,7 @@ export default function PostCard({ post }: PostCardProps) {
   };
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow-md max-w-3xl mx-auto mb-4">
+    <div className="bg-white p-4 rounded-lg shadow-md max-w-4xl mx-auto mb-4">
       {/* Creator Section */}
       <div className="flex items-center gap-2 mb-3">
         <img
@@ -119,6 +119,7 @@ export default function PostCard({ post }: PostCardProps) {
         />
         <div>
           <p className="font-semibold text-green-800 text-lg">{creatorName}</p>
+          <p className="text-sm">{time.slice(0,10)}</p>
         </div>
       </div>
 

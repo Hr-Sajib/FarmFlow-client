@@ -22,7 +22,7 @@ export type TField = {
 };
 
 
-export type TUser = {
+export type TCurrentUser = {
   _id: string;
   name: string;
   farmerId: string;
@@ -51,6 +51,7 @@ export interface IPost {
     reactions: TReaction;
     comments: TComment[];
     postTopics: TPostTopic[];
+    createdAt: string;
 }
 
 export type TReaction = {

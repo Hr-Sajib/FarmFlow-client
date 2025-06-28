@@ -2,7 +2,7 @@ import { configureStore, Middleware } from '@reduxjs/toolkit';
 import { baseApi } from './api/baseApi';
 import authReducer from './features/auth/authSlice';
 import fieldsReducer from './features/fields/fieldsSlice';
-import userReducer from './features/user/userSlice';
+import currentUserReducer from './features/currentUser/currentUserSlice';
 import postReducer from './features/posts/postSlice';
 import { persistReducer, persistStore } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
@@ -11,14 +11,14 @@ import { combineReducers } from '@reduxjs/toolkit';
 const persistConfig = {
   key: 'root',
   storage,
-  whitelist: ['auth', 'fields', 'user', 'posts'],
+  whitelist: ['auth', 'fields', 'currentUser', 'posts'],
 };
 
 const rootReducer = combineReducers({
   [baseApi.reducerPath]: baseApi.reducer,
   auth: authReducer,
   fields: fieldsReducer,
-  user: userReducer,
+  currentUser: currentUserReducer,
   posts: postReducer,
 });
 

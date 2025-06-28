@@ -1,14 +1,23 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import useScrollDirection from '@/redux/hooks';
+import useScrollDirection, { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
+import { RootState } from '@/redux/store';
+import FarmerProfile from './farmerDashboard/farmerProfile';
+import { logout } from '@/redux/features/auth/authSlice';
+import { clearCurrentUser } from '@/redux/features/currentUser/currentUserSlice';
 
 export default function Navbar() {
+  const { currentUser } = useAppSelector((state: RootState) => state.currentUser);
+  const dispatch = useAppDispatch();
+
   const scrollDirection = useScrollDirection();
   const pathname = usePathname();
+
+  console.log("in nav cur: ",currentUser)
 
   return (
     <AnimatePresence>
@@ -36,7 +45,7 @@ export default function Navbar() {
                 FarmFlow
               </h1>
             </Link>
-            <div className="space-x-4 text-sm sm:text-base text-gray-700">
+            <div className="space-x-4 flex items-center text-sm sm:text-base text-gray-700">
               <Link
                 href="/"
                 className={`hover:underline ${pathname === '/' ? 'text-green-700' : ''}`}
@@ -61,12 +70,30 @@ export default function Navbar() {
               >
                 Report
               </Link>
+              {
+                currentUser ?
+
+                <div className='flex gap-2'>
+                  <button onClick={()=>{
+                    console.log("log out clicked..")
+                    localStorage.removeItem("accessToken");
+                    dispatch(logout());
+                    dispatch(clearCurrentUser());
+                  }} >Logout</button>
+                  <FarmerProfile/>
+
+                </div>
+
+     
+                :
               <Link
-                href="/login"
-                className={`hover:underline ${pathname === '/login' ? 'text-green-700' : ''}`}
-              >
-                Login
+                  href="/login"
+                  className={`hover:underline ${pathname === '/login' ? 'text-green-700' : ''}`}
+                >
+                  Login
               </Link>
+              }
+              
             </div>
           </div>
         </motion.nav>

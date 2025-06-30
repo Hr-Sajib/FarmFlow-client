@@ -7,11 +7,15 @@ import { useLoginMutation } from "@/redux/features/auth/authApi";
 import { verifyToken } from "@/utils/verifyToken";
 import { setUser, TUser } from "@/redux/features/auth/authSlice";
 import { useAppDispatch } from "@/redux/hooks";
+import { useGetMeMutation } from "@/redux/features/currentUser/currentUserApi";
+import { setCurrentUser } from "@/redux/features/currentUser/currentUserSlice";
 
 export default function LoginPage() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const dispatch = useAppDispatch();
+  const [getMe] = useGetMeMutation();
+
 
   const [login, { isLoading }] = useLoginMutation();
 
@@ -27,6 +31,11 @@ export default function LoginPage() {
         const user = verifyToken(result.data.accessToken) as TUser;
         dispatch(setUser({ user, token: result.data.accessToken }));
       }
+
+       // ✅ Fetch current user and store in currentUser slice
+      const res = await getMe().unwrap();
+      dispatch(setCurrentUser(res.data));
+
 
       // Redirect or update state here
     } catch (err: any) {

@@ -59,6 +59,12 @@ export default function Navbar() {
                 Forum
               </Link>
               <Link
+                href="/chat"
+                className={`hover:underline ${pathname === '/chat' ? 'text-green-700' : ''}`}
+              >
+                Chat
+              </Link>
+              <Link
                 href="/about"
                 className={`hover:underline ${pathname === '/about' ? 'text-green-700' : ''}`}
               >

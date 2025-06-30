@@ -31,7 +31,7 @@ export default function PostCard({ post }: PostCardProps) {
   } = post;
 
 
-  const { user } = useSelector((state: RootState) => state.user);
+  const { currentUser } = useSelector((state: RootState) => state.currentUser);
 
   const [likePost, { isLoading: isLiking }] = useLikePostMutation();
   const [removeLikePost, { isLoading: isRemovingLike }] = useRemoveLikePostMutation();
@@ -41,7 +41,7 @@ export default function PostCard({ post }: PostCardProps) {
 
   const [commentText, setCommentText] = useState('');
 
-  const userId = user?._id ?? '';
+  const userId = currentUser?._id ?? '';
   const hasInitiallyLiked = reactions.likes.by.includes(userId);
   const hasInitiallyDisliked = reactions.dislikes.by.includes(userId);
 
@@ -90,13 +90,13 @@ export default function PostCard({ post }: PostCardProps) {
   };
 
   const handleCommentSubmit = async () => {
-    if (!commentText.trim() || !_id || !user) return;
+    if (!commentText.trim() || !_id || !currentUser) return;
     try {
       await commentPost({ postId: _id, commentText }).unwrap();
 
       const newComment: TComment = {
-        commenterName: user.name,
-        commenterId: user._id,
+        commenterName: currentUser.name,
+        commenterId: currentUser._id,
         commentText: commentText.trim(),
       };
       setComments((prev) => [...prev, newComment]);

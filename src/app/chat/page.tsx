@@ -128,70 +128,89 @@ const ChatPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center p-4">
-      <h1 className="text-3xl font-bold text-green-800 mb-6">Chatbot</h1>
-      <div className="w-full max-w-2xl bg-white rounded-lg shadow-md flex flex-col h-[80vh]">
-        {/* Chat History */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {messages.length === 0 ? (
-            <p className="text-gray-500 text-center">Start a conversation!</p>
-          ) : (
-            messages.map((msg, index) => (
-              <div
-                key={index}
-                className={`flex ${
-                  msg.role === 'user' ? 'justify-end' : 'justify-start'
-                }`}
-              >
-                <div
-                  className={`max-w-[70%] p-3 rounded-lg ${
-                    msg.role === 'user'
-                      ? 'bg-green-800 text-white'
-                      : 'bg-gray-200 text-gray-800'
-                  }`}
-                >
-                  {msg.role === 'assistant' ? (
-                    <div className="prose prose-sm max-w-none">
-                      <ReactMarkdown
-                        remarkPlugins={[remarkGfm]}
-                        components={markdownComponents}
-                      >
-                        {"হ্যালো আপনাকে FarmFLow তে স্বাগতম ...\n"+msg.content}
-                      </ReactMarkdown>
-                    </div>
-                  ) : (
-                    <p>{msg.content}</p>
-                  )}
-                </div>
-              </div>
-            ))
-          )}
-         
-          <div ref={messagesEndRef} />
-        </div>
+    <div className="min-h-screen bg-gray-100 flex flex-col items-center p-4 pt-9">
+      {/* <h1 className="text-3xl font-bold text-green-800 mb-6">AI Powered Chatbot</h1> */}
+     <div className='w-full flex gap-3'>
+        <div className='rounded-l-lg bg-white w-[45%] p-5 shadow-md'>
+            <p className='text-xl font-semibold text-green-800 mb-5'>Chat History</p>
 
-        {/* Input Form */}
-        <form onSubmit={handleSubmit} className="p-4 border-t border-gray-200">
-          {error && <p className="text-red-600 text-sm mb-2">{error}</p>}
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Type your message..."
-              className="flex-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-              disabled={isLoading}
-            />
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="bg-green-800 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:bg-gray-400"
-            >
-              Send
-            </button>
-          </div>
-        </form>
-      </div>
+            {/* histories  */}
+
+            <div className='bg-green-100 p-3 rounded-lg flex'>
+                <div>
+                    <p className='font-semibold'>About rice growth</p>
+                    <p className='my-1'>What are the main purposes of rapid rice growth technolog...</p>
+                    <span className='text-sm bg-green-900 text-white px-2 rounded-md'>12-08-2025</span>
+                </div>
+                <div>
+                    {/* options icon */}
+                </div>
+            </div>
+        
+        </div>
+        <div className="w-full bg-white rounded-r-lg shadow-md flex flex-col h-[80vh]">
+            {/* Chat History */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {messages.length === 0 ? (
+                <p className="text-gray-500 text-center">Start a conversation!</p>
+            ) : (
+                messages.map((msg, index) => (
+                <div
+                    key={index}
+                    className={`flex ${
+                    msg.role === 'user' ? 'justify-end' : 'justify-start'
+                    }`}
+                >
+                    <div
+                    className={`max-w-[70%] p-3 rounded-lg ${
+                        msg.role === 'user'
+                        ? 'bg-green-800 text-white'
+                        : 'bg-gray-200 text-gray-800'
+                    }`}
+                    >
+                    {msg.role === 'assistant' ? (
+                        <div className="prose prose-sm max-w-none">
+                        <ReactMarkdown
+                            remarkPlugins={[remarkGfm]}
+                            components={markdownComponents}
+                        >
+                            {msg.content}
+                        </ReactMarkdown>
+                        </div>
+                    ) : (
+                        <p>{msg.content}</p>
+                    )}
+                    </div>
+                </div>
+                ))
+            )}
+            
+            <div ref={messagesEndRef} />
+            </div>
+
+            {/* Input Form */}
+            <form onSubmit={handleSubmit} className="p-4 border-t border-gray-100">
+            {error && <p className="text-red-600 text-sm mb-2">{error}</p>}
+            <div className="flex gap-2">
+                <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Type your message..."
+                className="flex-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                disabled={isLoading}
+                />
+                <button
+                type="submit"
+                disabled={isLoading}
+                className="bg-green-800 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:bg-gray-400"
+                >
+                Send
+                </button>
+            </div>
+            </form>
+        </div>
+     </div>
     </div>
   );
 };

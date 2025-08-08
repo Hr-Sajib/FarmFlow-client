@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import PostCard from '@/components/forum/PostCard';
 import { useGetPostsQuery, useCreatePostMutation } from '@/redux/features/posts/postApi';
-import { Camera, Send } from 'lucide-react';
+import { Camera, Send, Search } from 'lucide-react';
 import { postImage } from '@/utils/postImage';
 import { TPostTopic } from '@/types/types';
 
@@ -16,6 +16,7 @@ export default function PostsForumPage() {
   const [postTopics, setPostTopics] = useState<TPostTopic[]>([]);
   const [errorMessage, setErrorMessage] = useState('');
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [searchQuery, setSearchQuery] = useState(''); // New state for search query
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -93,16 +94,34 @@ export default function PostsForumPage() {
     'weather', 'harvest', 'equipment', 'market', 'pest', 'technology',
   ];
 
+  // Filter posts based on search query
+  const filteredPosts = posts?.filter((post) =>
+    post.postText.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
-    <div className="w-full mx-auto p-4 bg-gray-100 relative bottom-3 min-h-[100vh]">
+    <div className="w-full mx-auto p-4 bg-gray-100 pt-10 min-h-[100vh]">
       <div>
+       
         <h2 className="text-3xl font-bold text-green-800 my-2">💬 Community Forum</h2>
         <p className="mb-6">Farmers can post questions, share experiences, and interact here.</p>
       </div>
       <div className="flex flex-col md:flex-row gap-5">
         {/* Left Section - Sticky */}
         <div className="w-full md:w-1/3 space-y-4 sticky top-10 self-start">
-          {/* Post Creation Section */}
+         {/* Search Bar */}
+        <div className="mb-6">
+          <div className="relative max-w-md mx-auto">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search posts..."
+              className="w-full p-3 pl-10 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
+            />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
+          </div>
+        </div>
           <div className="bg-white p-4 rounded-lg shadow-md">
             <h3 className="text-lg font-semibold text-green-800 mb-2">Create a Post</h3>
             <form onSubmit={handleSubmit} className="space-y-3">
@@ -123,13 +142,17 @@ export default function PostsForumPage() {
                   />
                   <Camera className="w-10 h-10 p-1 mb-1 rounded-md bg-green-100 text-green-700" />
                 </label>
-                {imagePreview && (
+                {isUploadingImage ? (
+                  <div className="w-16 h-16 flex items-center justify-center bg-gray-200 rounded-md">
+                    <div className="w-8 h-8 border-4 border-green-800 border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                ) : imagePreview ? (
                   <img
                     src={imagePreview}
                     alt="Preview"
                     className="w-16 h-16 object-cover rounded-md"
                   />
-                )}
+                ) : null}
               </div>
               <div className="flex flex-wrap gap-2">
                 {availableTopics.map((topic) => (
@@ -155,7 +178,6 @@ export default function PostsForumPage() {
               </button>
             </form>
           </div>
-          {/* Engagement Stats */}
           <div className="bg-white p-4 rounded-lg shadow-md">
             <h3 className="text-lg font-semibold text-green-800 mb-2">Forum Stats</h3>
             <p className="text-sm text-gray-600">Total Posts: {posts?.length || 0}</p>
@@ -164,6 +186,7 @@ export default function PostsForumPage() {
         </div>
         {/* Right Section - Feed */}
         <div className="w-full md:w-3/5">
+        
           {isLoading ? (
             <p className="text-gray-600 text-center">Loading posts...</p>
           ) : error ? (
@@ -172,11 +195,13 @@ export default function PostsForumPage() {
                 ? 'You are not authorized. Please log in.'
                 : 'Failed to load posts.'}
             </p>
-          ) : !posts || posts.length === 0 ? (
-            <p className="text-gray-600 text-center">No posts found.</p>
+          ) : !filteredPosts || filteredPosts.length === 0 ? (
+            <p className="text-gray-600 text-center">
+              {searchQuery ? 'No posts match your search.' : 'No posts found.'}
+            </p>
           ) : (
             <div className="space-y-4">
-              {posts.map((post) => (
+              {filteredPosts.map((post) => (
                 <PostCard key={post._id?.toString()} post={post} />
               ))}
             </div>

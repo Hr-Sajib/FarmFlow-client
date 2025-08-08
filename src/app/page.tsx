@@ -50,7 +50,7 @@ export default function FarmerDashboard() {
   }, []);
 
   return (
-    <div className="container mx-auto px-4 py-5 bg-white min-h-screen">
+    <div className="px-20 pt-16 w-full py-5 bg-gray-100 min-h-screen">
       <section className="mb-8">
           <div className='flex h-16'>
             <div className="bg-white flex items-center gap-1 bg-gradient-to-r to-green-100 from-white text-2xl w-60 justify-center rounded-md shadow-md font-semibold text-green-800 mb-6">

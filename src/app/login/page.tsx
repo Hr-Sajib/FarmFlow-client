@@ -3,6 +3,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useLoginMutation } from "@/redux/features/auth/authApi";
 import { verifyToken } from "@/utils/verifyToken";
 import { setUser, TUser } from "@/redux/features/auth/authSlice";
@@ -14,9 +15,9 @@ export default function LoginPage() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const dispatch = useAppDispatch();
+  const router = useRouter();
+
   const [getMe] = useGetMeMutation();
-
-
   const [login, { isLoading }] = useLoginMutation();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -28,16 +29,17 @@ export default function LoginPage() {
 
       if (result?.data?.accessToken) {
         localStorage.setItem("accessToken", result?.data?.accessToken);
+
         const user = verifyToken(result.data.accessToken) as TUser;
         dispatch(setUser({ user, token: result.data.accessToken }));
       }
 
-       // ✅ Fetch current user and store in currentUser slice
+      // ✅ Fetch current user and store in currentUser slice
       const res = await getMe().unwrap();
       dispatch(setCurrentUser(res.data));
 
-
-      // Redirect or update state here
+      // ✅ Redirect to home
+      router.push("/");
     } catch (err: any) {
       console.error("Login failed:", err.message || err);
     }
@@ -73,8 +75,9 @@ export default function LoginPage() {
                 <input
                   type="text"
                   id="phone"
+                  defaultValue={"01812345671"}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="mt-1 w-full px-4 py-2 bg-green-50  rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none text-gray-700"
+                  className="mt-1 w-full px-4 py-2 bg-green-50 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none text-gray-700"
                 />
               </div>
               <div>
@@ -85,9 +88,8 @@ export default function LoginPage() {
                   Password
                 </label>
                 <input
-                  // type="password"
                   id="password"
-                  defaultValue="admin@farmflow"
+                  defaultValue="faham@farmflow"
                   onChange={(e) => setPassword(e.target.value)}
                   className="mt-1 w-full px-4 py-2 bg-green-50 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none text-gray-700"
                 />

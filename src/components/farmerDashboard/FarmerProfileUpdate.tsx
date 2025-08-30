@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -5,8 +6,10 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/redux/store';
 import { setCurrentUser } from '@/redux/features/currentUser/currentUserSlice';
 import Image from 'next/image';
+import { toast } from 'react-hot-toast';
 import { useUpdateUserMutation } from '@/redux/features/currentUser/currentUserApi';
-// import { useUpdateUserMutation } from '@/redux/features/user/userApi';
+import { postImage } from '@/utils/postImage';
+
 
 interface FarmerProfileUpdateProps {
   isOpen: boolean;
@@ -17,20 +20,20 @@ export default function FarmerProfileUpdate({ isOpen, onClose }: FarmerProfileUp
   const dispatch = useDispatch();
   const { currentUser } = useSelector((state: RootState) => state.currentUser);
   const [updateUser, { isLoading, error }] = useUpdateUserMutation();
-
   const [formData, setFormData] = useState({
-    _id:'',
+    _id: '',
     name: '',
     email: '',
     phone: '',
     address: '',
     photo: '',
   });
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     if (currentUser) {
       setFormData({
-        _id: currentUser._id, // ✅ include _id
+        _id: currentUser._id,
         name: currentUser.name || '',
         email: currentUser.email || '',
         phone: currentUser.phone || '',
@@ -40,29 +43,61 @@ export default function FarmerProfileUpdate({ isOpen, onClose }: FarmerProfileUp
     }
   }, [currentUser]);
 
-  console.log("User to up: ",currentUser)
+  // Disable background scrolling when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [isOpen]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      console.log('FarmerProfileUpdate: Image selected, uploading...');
+      setIsUploading(true);
+      try {
+        const imageUrl = await postImage(file);
+        console.log('FarmerProfileUpdate: Image uploaded, URL:', imageUrl);
+        setFormData((prev) => ({ ...prev, photo: imageUrl }));
+      } catch (error) {
+        console.error('FarmerProfileUpdate: Error uploading image:', error);
+        toast.error('Failed to upload image');
+      } finally {
+        setIsUploading(false);
+      }
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.email || !formData.phone) {
-      alert('Name, email, and phone are required.');
+      toast.error('Name, email, and phone are required.');
       return;
     }
     if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      alert('Please enter a valid email address.');
+      toast.error('Please enter a valid email address.');
       return;
     }
 
     try {
+      console.log('FarmerProfileUpdate: Submitting update with payload:', formData);
       const response = await updateUser(formData).unwrap();
-      console.log('User updated:', response);
-      dispatch(setCurrentUser(response));
+      console.log('FarmerProfileUpdate: User updated:', response);
+      dispatch(setCurrentUser(response.data));
+      toast.success('Profile updated successfully');
       onClose();
     } catch (err) {
-      console.error('Failed to update user:', err);
+      console.error('FarmerProfileUpdate: Failed to update user:', err);
+      toast.error('Failed to update profile');
     }
   };
 
@@ -70,21 +105,18 @@ export default function FarmerProfileUpdate({ isOpen, onClose }: FarmerProfileUp
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg shadow-md max-w-md w-full mx-4">
+      <div className="bg-white p-6 rounded-lg shadow-md max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
         <h2 className="text-xl font-semibold mb-4 text-center">Update Profile</h2>
         <form onSubmit={handleSubmit}>
-          
-          {formData.photo && (
-            <div className="flex justify-center">
+            <div className="flex justify-center mb-4">
               <Image
-                src={formData.photo || 'https://i.postimg.cc/4yq4jX4W/default-avatar.png'}
+                src={formData.photo}
                 alt="Profile preview"
                 width={100}
                 height={100}
                 className="w-20 h-20 rounded-full border-3 border-green-700 object-cover"
               />
             </div>
-          )}
           {error && (
             <p className="text-red-600 text-sm text-center mb-4">
               {'status' in error && error.status === 401
@@ -92,7 +124,6 @@ export default function FarmerProfileUpdate({ isOpen, onClose }: FarmerProfileUp
                 : 'Failed to update profile.'}
             </p>
           )}
-          
           <div className="mb-4">
             <label htmlFor="name" className="block text-sm font-medium text-gray-700">
               Name
@@ -107,7 +138,7 @@ export default function FarmerProfileUpdate({ isOpen, onClose }: FarmerProfileUp
               required
             />
           </div>
-        <div className="mb-4">
+          <div className="mb-4">
             <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
               Phone
             </label>
@@ -136,7 +167,6 @@ export default function FarmerProfileUpdate({ isOpen, onClose }: FarmerProfileUp
               required
             />
           </div>
-
           <div className="mb-4">
             <label htmlFor="address" className="block text-sm font-medium text-gray-700">
               Address
@@ -152,19 +182,19 @@ export default function FarmerProfileUpdate({ isOpen, onClose }: FarmerProfileUp
           </div>
           <div className="mb-4">
             <label htmlFor="photo" className="block text-sm font-medium text-gray-700">
-              Photo URL
+              Profile Photo
             </label>
             <input
-              type="url"
+              type="file"
               id="photo"
               name="photo"
-              value={formData.photo}
-              onChange={handleChange}
-              className="mt-1 w-full p-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-              placeholder="https://example.com/photo.jpg"
+              accept="image/*"
+              onChange={handleImageChange}
+              disabled={isUploading}
+              className="mt-1 w-full p-2 border border-gray-300 rounded-md"
             />
+            {isUploading && <p className="text-sm text-gray-600 mt-1">Uploading image...</p>}
           </div>
-          
           <div className="flex justify-end gap-2">
             <button
               type="button"
@@ -175,7 +205,7 @@ export default function FarmerProfileUpdate({ isOpen, onClose }: FarmerProfileUp
             </button>
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || isUploading}
               className="px-4 py-2 bg-green-800 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
             >
               {isLoading ? 'Updating...' : 'Update'}

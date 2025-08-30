@@ -1,23 +1,24 @@
 
-import { useState } from 'react';
-import { ThumbsUp, ThumbsDown } from 'lucide-react';
-import { useSelector } from 'react-redux';
-import { RootState } from '@/redux/store';
-import { IPost, TComment } from '@/types/types';
+import { useState } from "react";
+import { ThumbsUp, ThumbsDown } from "lucide-react";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
+import { IPost, TComment } from "@/types/types";
 import {
   useLikePostMutation,
   useRemoveLikePostMutation,
   useDislikePostMutation,
   useRemoveDislikePostMutation,
   useCommentMutation,
-} from '@/redux/features/posts/postApi';
+  useDeletePostMutation,
+} from "@/redux/features/posts/postApi";
+import { toast } from "react-hot-toast";
 
 interface PostCardProps {
   post: IPost;
 }
 
 export default function PostCard({ post }: PostCardProps) {
-
   const {
     postImage,
     creatorName,
@@ -27,9 +28,9 @@ export default function PostCard({ post }: PostCardProps) {
     reactions,
     comments: initialComments,
     _id,
-    createdAt: time
+    creatorId,
+    createdAt: time,
   } = post;
-
 
   const { currentUser } = useSelector((state: RootState) => state.currentUser);
 
@@ -38,10 +39,11 @@ export default function PostCard({ post }: PostCardProps) {
   const [dislikePost, { isLoading: isDisliking }] = useDislikePostMutation();
   const [removeDislikePost, { isLoading: isRemovingDislike }] = useRemoveDislikePostMutation();
   const [commentPost, { isLoading: isCommenting }] = useCommentMutation();
+  const [deletePost, { isLoading: isDeleting }] = useDeletePostMutation();
 
-  const [commentText, setCommentText] = useState('');
+  const [commentText, setCommentText] = useState("");
 
-  const userId = currentUser?._id ?? '';
+  const userId = currentUser?._id ?? "";
   const hasInitiallyLiked = reactions.likes.by.includes(userId);
   const hasInitiallyDisliked = reactions.dislikes.by.includes(userId);
 
@@ -64,8 +66,9 @@ export default function PostCard({ post }: PostCardProps) {
         await likePost(_id).unwrap();
       }
     } catch (error) {
-      console.error('Error toggling like:', error);
+      console.error("Error toggling like:", error);
       setHasLiked(hasInitiallyLiked);
+      toast.error("Failed to update like");
     }
   };
 
@@ -84,8 +87,9 @@ export default function PostCard({ post }: PostCardProps) {
         await dislikePost(_id).unwrap();
       }
     } catch (error) {
-      console.error('Error toggling dislike:', error);
+      console.error("Error toggling dislike:", error);
       setHasDisliked(hasInitiallyDisliked);
+      toast.error("Failed to update dislike");
     }
   };
 
@@ -100,27 +104,58 @@ export default function PostCard({ post }: PostCardProps) {
         commentText: commentText.trim(),
       };
       setComments((prev) => [...prev, newComment]);
-      setCommentText('');
+      setCommentText("");
+      toast.success("Comment posted successfully");
     } catch (error) {
-      console.error('Error posting comment:', error);
+      console.error("Error posting comment:", error);
+      toast.error("Failed to post comment");
+    }
+  };
+
+  const handleDeletePost = async () => {
+    if (!_id) return;
+    try {
+      await deletePost(_id).unwrap();
+      console.log(`PostCard: Deleted post ${_id}`);
+      toast.success("Post deleted successfully");
+    } catch (error) {
+      console.error("Error deleting post:", error);
+      toast.error("Failed to delete post");
     }
   };
 
   return (
     <div className="bg-white p-4 rounded-lg shadow-md max-w-4xl mx-auto mb-4">
       {/* Creator Section */}
-      <div className="flex items-center gap-2 mb-3">
-        <img
-          src={creatorPhoto || 'https://i.postimg.cc/4yq4jX4W/default-avatar.png'}
-          alt={`${creatorName}'s photo`}
-          width={40}
-          height={40}
-          className="w-10 h-10 rounded-full object-cover"
-        />
-        <div>
-          <p className="font-semibold text-green-800 text-lg">{creatorName}</p>
-          <p className="text-sm">{time.slice(0,10)}</p>
+      <div className="flex justify-between">
+        <div className="flex items-center gap-2 mb-3">
+          <img
+            src={
+              creatorPhoto || "https://i.postimg.cc/4yq4jX4W/default-avatar.png"
+            }
+            alt={`${creatorName}'s photo`}
+            width={40}
+            height={40}
+            className="w-10 h-10 rounded-full object-cover"
+          />
+          <div>
+            <p className="font-semibold text-green-800 text-lg">
+              {creatorName}
+            </p>
+            <p className="text-sm">{time.slice(0, 10)}</p>
+          </div>
         </div>
+        {/* Delete Post Button */}
+        {currentUser?._id === creatorId?._id && (
+          <button
+            onClick={handleDeletePost}
+            disabled={isDeleting}
+            className="text-red-600 hover:text-red-800 transition disabled:opacity-50"
+            title="Delete post"
+          >
+            🗑
+          </button>
+        )}
       </div>
 
       {/* Post Text */}
@@ -157,9 +192,11 @@ export default function PostCard({ post }: PostCardProps) {
       <div className="flex gap-4 mb-3 items-center">
         <button
           onClick={handleLikeToggle}
-          disabled={isLiking || isRemovingLike || isDisliking || isRemovingDislike}
+          disabled={
+            isLiking || isRemovingLike || isDisliking || isRemovingDislike
+          }
           className={`flex items-center gap-1 ${
-            hasLiked ? 'text-green-700' : 'text-gray-600'
+            hasLiked ? "text-green-700" : "text-gray-600"
           } hover:text-green-900 transition`}
         >
           {hasLiked ? (
@@ -175,9 +212,11 @@ export default function PostCard({ post }: PostCardProps) {
 
         <button
           onClick={handleDislikeToggle}
-          disabled={isLiking || isRemovingLike || isDisliking || isRemovingDislike}
+          disabled={
+            isLiking || isRemovingLike || isDisliking || isRemovingDislike
+          }
           className={`flex items-center gap-1 ${
-            hasDisliked ? 'text-red-600' : 'text-gray-600'
+            hasDisliked ? "text-red-600" : "text-gray-600"
           } hover:text-red-800 transition`}
         >
           {hasDisliked ? (
@@ -187,7 +226,11 @@ export default function PostCard({ post }: PostCardProps) {
           )}
           <span className="text-sm">
             {reactions.dislikes.count +
-              (hasDisliked !== hasInitiallyDisliked ? (hasDisliked ? 1 : -1) : 0)}
+              (hasDisliked !== hasInitiallyDisliked
+                ? hasDisliked
+                  ? 1
+                  : -1
+                : 0)}
           </span>
         </button>
       </div>
@@ -200,7 +243,9 @@ export default function PostCard({ post }: PostCardProps) {
         ) : (
           comments.map((comment, idx) => (
             <div key={idx} className="mb-2 border-l-2 border-gray-400 pl-2">
-              <p className="font-semibold text-gray-700">{comment.commenterName}</p>
+              <p className="font-semibold text-gray-700">
+                {comment.commenterName}
+              </p>
               <p className="text-gray-600">{comment.commentText}</p>
             </div>
           ))
@@ -223,7 +268,7 @@ export default function PostCard({ post }: PostCardProps) {
             disabled={isCommenting || !commentText.trim()}
             className="bg-green-800 text-white p-2 rounded-lg mt-2 disabled:opacity-50"
           >
-            {isCommenting ? 'Posting...' : 'Comment'}
+            {isCommenting ? "Posting..." : "Comment"}
           </button>
         </div>
       </div>

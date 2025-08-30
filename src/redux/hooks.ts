@@ -35,3 +35,9 @@ export default function useScrollDirection() {
 
   return scrollDirection;
 }
+
+
+export const useAuth = () => {
+  const { user, token } = useAppSelector((state) => state.auth);
+  return { user, token, isLoggedIn: !!token };
+};

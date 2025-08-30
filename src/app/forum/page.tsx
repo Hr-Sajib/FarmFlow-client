@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -6,17 +7,22 @@ import { useGetPostsQuery, useCreatePostMutation } from '@/redux/features/posts/
 import { Camera, Send, Search } from 'lucide-react';
 import { postImage } from '@/utils/postImage';
 import { TPostTopic } from '@/types/types';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/redux/store';
+import { toast } from 'react-hot-toast';
 
 export default function PostsForumPage() {
   const { data: posts, isLoading, error } = useGetPostsQuery();
   const [createPost, { isLoading: isCreating }] = useCreatePostMutation();
+  const { currentUser } = useSelector((state: RootState) => state.currentUser);
   const [postText, setPostText] = useState('');
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [postTopics, setPostTopics] = useState<TPostTopic[]>([]);
   const [errorMessage, setErrorMessage] = useState('');
   const [isUploadingImage, setIsUploadingImage] = useState(false);
-  const [searchQuery, setSearchQuery] = useState(''); // New state for search query
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filter, setFilter] = useState<'all' | 'my'>('all');
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -56,9 +62,9 @@ export default function PostsForumPage() {
       if (selectedImage) {
         setIsUploadingImage(true);
         console.log('handleSubmit - Starting image upload for:', selectedImage.name);
-        // Comment out actual API call for testing
         imageUrl = await postImage(selectedImage);
-        imageUrl = 'https://i.postimg.cc/9Q9nHyc6/field3.jpg'; // Mock URL
+        // Mock URL for testing
+        imageUrl = 'https://i.postimg.cc/9Q9nHyc6/field3.jpg';
         console.log('handleSubmit - Image upload complete, URL:', imageUrl);
         setIsUploadingImage(false);
         if (!imageUrl) {
@@ -73,19 +79,20 @@ export default function PostsForumPage() {
         postTopics: postTopics,
       };
       console.log('handleSubmit - createPost payload:', payload);
-      // Comment out actual API call for testing
       await createPost(payload).unwrap();
-      console.log('handleSubmit - createPost simulated success');
+      console.log('handleSubmit - createPost success');
       setPostText('');
       setSelectedImage(null);
       setImagePreview(null);
       setPostTopics([]);
       setErrorMessage('');
       console.log('handleSubmit - Form reset, postTopics:', postTopics);
+      toast.success('Post created successfully');
     } catch (err) {
       console.error('handleSubmit - Create post error:', err);
       setErrorMessage('Failed to create post');
       setIsUploadingImage(false);
+      toast.error('Failed to create post');
     }
   };
 
@@ -94,34 +101,48 @@ export default function PostsForumPage() {
     'weather', 'harvest', 'equipment', 'market', 'pest', 'technology',
   ];
 
-  // Filter posts based on search query
-  const filteredPosts = posts?.filter((post) =>
-    post.postText.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Filter posts based on search query and filter option
+  const filteredPosts = posts?.filter((post) => {
+    const matchesSearch = post.postText.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCreator = filter === 'all' || post.creatorId?._id === currentUser?._id;
+    return matchesSearch && matchesCreator;
+  });
 
   return (
     <div className="w-full mx-auto p-4 bg-gray-100 pt-10 min-h-[100vh]">
       <div>
-       
-        <h2 className="text-3xl font-bold text-green-800 my-2">💬 Community Forum</h2>
+        <h2 className="text-3xl font-bold text-green-800 my-2">🌐 Community Forum</h2>
         <p className="mb-6">Farmers can post questions, share experiences, and interact here.</p>
       </div>
       <div className="flex flex-col md:flex-row gap-5">
         {/* Left Section - Sticky */}
         <div className="w-full md:w-1/3 space-y-4 sticky top-10 self-start">
-         {/* Search Bar */}
-        <div className="mb-6">
-          <div className="relative max-w-md mx-auto">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search posts..."
-              className="w-full p-3 pl-10 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
-            />
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
+          {/* Search Bar and Filter */}
+          <div className="mb-6 flex items-center justify-between">
+            <div className="relative w-[23vw] mx-auto">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search posts..."
+                className="w-full p-3 pl-10 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
+              />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
+            </div>
+            <div className=" max-w-md mx-auto">
+              <select
+                value={filter}
+                onChange={(e) => {
+                  setFilter(e.target.value as 'all' | 'my');
+                  toast.success(`Showing ${e.target.value === 'all' ? 'all posts' : 'your posts'}`);
+                }}
+                className="w-full p-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-green-500 bg-white text-gray-700"
+              >
+                <option value="all">See All Posts</option>
+                <option value="my">My Posts</option>
+              </select>
+            </div>
           </div>
-        </div>
           <div className="bg-white p-4 rounded-lg shadow-md">
             <h3 className="text-lg font-semibold text-green-800 mb-2">Create a Post</h3>
             <form onSubmit={handleSubmit} className="space-y-3">
@@ -171,7 +192,7 @@ export default function PostsForumPage() {
               <button
                 type="submit"
                 disabled={isCreating || isUploadingImage}
-                className="flex items-center gap-2 bg-green-800 font-semibold text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:bg-gray-400"
+                className="flex items-center gap-2 bg-green-800 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:bg-gray-400"
               >
                 <Send className="w-5 h-5" />
                 {isCreating || isUploadingImage ? 'Posting...' : 'Post to forum'}
@@ -186,8 +207,9 @@ export default function PostsForumPage() {
         </div>
         {/* Right Section - Feed */}
         <div className="w-full md:w-3/5">
-        
-          {isLoading ? (
+          {filter === 'my' && !currentUser ? (
+            <p className="text-red-600 text-center">Please log in to view your posts.</p>
+          ) : isLoading ? (
             <p className="text-gray-600 text-center">Loading posts...</p>
           ) : error ? (
             <p className="text-red-600 text-center">
@@ -197,7 +219,7 @@ export default function PostsForumPage() {
             </p>
           ) : !filteredPosts || filteredPosts.length === 0 ? (
             <p className="text-gray-600 text-center">
-              {searchQuery ? 'No posts match your search.' : 'No posts found.'}
+              {searchQuery || filter === 'my' ? 'No posts match your criteria.' : 'No posts found.'}
             </p>
           ) : (
             <div className="space-y-4">

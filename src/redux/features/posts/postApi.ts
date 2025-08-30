@@ -10,9 +10,9 @@ export const postApi = baseApi.injectEndpoints({
         method: 'GET',
       }),
       transformResponse: (response: { success: boolean; statusCode: number; message: string; data: IPost[] }) => {
-        console.log('getPosts response:', response);
         return response.data;
       },
+      providesTags: ['Posts'], // ✅ so other mutations can refresh this
     }),
 
     // ✅ Create a post
@@ -23,7 +23,16 @@ export const postApi = baseApi.injectEndpoints({
         body: post,
       }),
       transformResponse: (response: { success: boolean; statusCode: number; message: string; data: IPost }) => response.data,
+      invalidatesTags: ['Posts'], // ✅ refresh list after create
+    }),
 
+    // ✅ Delete a post
+    deletePost: builder.mutation<{ success: boolean; message: string }, string>({
+      query: (postId) => ({
+        url: `/post/${postId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Posts'], // ✅ refresh list after delete
     }),
 
     // ✅ Like a post
@@ -32,6 +41,7 @@ export const postApi = baseApi.injectEndpoints({
         url: `/post/like/${postId}`,
         method: 'POST',
       }),
+      invalidatesTags: ['Posts'], // ✅ refresh like count
     }),
 
     // ✅ Remove like from a post
@@ -40,6 +50,7 @@ export const postApi = baseApi.injectEndpoints({
         url: `/post/removeLike/${postId}`,
         method: 'POST',
       }),
+      invalidatesTags: ['Posts'],
     }),
 
     // ✅ Dislike a post
@@ -48,6 +59,7 @@ export const postApi = baseApi.injectEndpoints({
         url: `/post/dislike/${postId}`,
         method: 'POST',
       }),
+      invalidatesTags: ['Posts'],
     }),
 
     // ✅ Remove dislike from a post
@@ -56,6 +68,7 @@ export const postApi = baseApi.injectEndpoints({
         url: `/post/removeDislike/${postId}`,
         method: 'POST',
       }),
+      invalidatesTags: ['Posts'],
     }),
 
     // ✅ Add a comment to a post
@@ -65,13 +78,15 @@ export const postApi = baseApi.injectEndpoints({
         method: 'POST',
         body: { commentText },
       }),
+      invalidatesTags: ['Posts'], // ✅ so comment count updates
     }),
-}),
+  }),
 });
 
 export const { 
   useGetPostsQuery, 
   useCreatePostMutation,
+  useDeletePostMutation,
   useLikePostMutation, 
   useRemoveLikePostMutation,
   useDislikePostMutation,

@@ -19,8 +19,10 @@ export type TField = {
     soilMoisture: number;
     lightIntensity: number;
   };
+  insights?: string;
+  motorOn?: boolean;
+  shadeOn?: boolean;
 };
-
 
 export type TCurrentUser = {
   _id: string;
@@ -41,11 +43,19 @@ export type TCurrentUser = {
 };
 
 
+export enum UserRole {
+  Admin = 'admin',
+  Farmer = 'farmer',
+}
+
+
 export interface IPost {
     _id?:string;
     creatorName: string;
     creatorPhoto: string;
-    creatorId: string;
+    creatorId: {
+      _id: string
+    };
     postText: string;
     postImage: string;
     reactions: TReaction;

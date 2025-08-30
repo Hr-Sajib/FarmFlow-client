@@ -2,7 +2,7 @@ import React from "react";
 
 const TrendsSection = () => {
   return (
-    <section className="mb-8">
+    <section className="my-5">
       <h2 className="text-2xl font-semibold text-gray-800 mb-4">
         Trend Charts
       </h2>

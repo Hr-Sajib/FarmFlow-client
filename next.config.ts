@@ -1,12 +1,21 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['i.postimg.cc'], // Keep existing domain for logo in Navbar
     remotePatterns: [
       {
         protocol: 'https',
+        hostname: 'i.postimg.cc',
+        pathname: '/**', // Allow all paths for logo in Navbar
+      },
+      {
+        protocol: 'https',
         hostname: 'api.empowernextgenbd.com',
-        pathname: '/uploads/**', // Restrict to /Uploads path
+        pathname: '/**', // Allow all paths, not restricted to /Uploads
+      },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+        pathname: '/**', // Allow all paths for Cloudinary
       },
     ],
   },

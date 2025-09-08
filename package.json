@@ -12,6 +12,7 @@
     "@google-ai/generativelanguage": "^3.2.0",
     "@reduxjs/toolkit": "^2.8.2",
     "axios": "^1.10.0",
+    "cloudinary": "^2.7.0",
     "framer-motion": "^12.19.1",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.523.0",

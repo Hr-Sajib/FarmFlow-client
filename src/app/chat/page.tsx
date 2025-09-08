@@ -43,7 +43,8 @@ const ChatPage: React.FC = () => {
   const fetchConversations = async () => {
     if (userPhone) {
       try {
-        const response = await axios.get(`http://localhost:5100/chat/my-chats/${userPhone}`);
+        // const response = await axios.get(`http://localhost:5100/chat/my-chats/${userPhone}`);
+        const response = await axios.get(`http://31.97.224.58:5101/chat/my-chats/${userPhone}`);
         console.log('ChatPage - Chat conversations:', response.data);
         if (response.data.data && Array.isArray(response.data.data)) {
           setConversations(response.data.data);
@@ -66,7 +67,8 @@ const ChatPage: React.FC = () => {
 
   // Initialize WebSocket connection
   useEffect(() => {
-    socketRef.current = io('http://localhost:5100', {
+    socketRef.current = io('http://31.97.224.58:5101', {
+    // socketRef.current = io('http://localhost:5100', {
       reconnection: true,
       transports: ['websocket'],
     });
@@ -176,7 +178,8 @@ const ChatPage: React.FC = () => {
 
     try {
       // Create an empty conversation
-      const response = await axios.post('http://localhost:5100/chat', {
+      const response = await axios.post('http://31.97.224.58:5101/chat', {
+      // const response = await axios.post('http://localhost:5100/chat', {
         userPhone,
         messages: [],
       });
@@ -262,7 +265,8 @@ const ChatPage: React.FC = () => {
     // Handle deleting a conversation
   const handleDeleteConversation = async (conversationId: string) => {
     try {
-      const response = await axios.delete(`http://localhost:5100/chat/${conversationId}`);
+      // const response = await axios.delete(`http://localhost:5100/chat/${conversationId}`);
+      const response = await axios.delete(`http://31.97.224.58:5101/chat/${conversationId}`);
       console.log('ChatPage - Conversation deleted:', response.data);
       toast.success(response.data.message || 'Conversation deleted successfully');
       if (currentConversationId === conversationId) {

@@ -80,7 +80,8 @@ export default function FieldCard({ field }: FieldCardProps) {
       };
 
       const response = await axios.post(
-        `http://localhost:5100/field/fields/${field.fieldId}/insights`,
+        // `http://localhost:5100/field/fields/${field.fieldId}/insights`,
+        `http://31.97.224.58:5101/field/fields/${field.fieldId}/insights`,
         { data: fieldInfo }
       );
       const newInsights = response.data.data.insights;
@@ -202,7 +203,7 @@ export default function FieldCard({ field }: FieldCardProps) {
             </div>
           </div>
           {/* AI Insights Section */}
-          <div className="bg-gray-50 shadow-sm border-gray-100 rounded-md h-38">
+          <div className="bg-gray-50 shadow-sm border-gray-100 rounded-md h-50">
             <div className="p-4">
               <div className="flex items-center justify-between">
                 <h4 className="text-lg font-semibold text-gray-800 mb-2 flex items-center gap-2">

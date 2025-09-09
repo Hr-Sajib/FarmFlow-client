@@ -8,7 +8,8 @@ import Image from 'next/image';
 import { RootState } from '@/redux/store';
 import { logout } from '@/redux/features/auth/authSlice';
 import { clearCurrentUser } from '@/redux/features/currentUser/currentUserSlice';
-import FarmerProfile from '../MainDashborad/farmerProfile';
+import FarmerProfile from '../farmerDashboard/farmerProfile';
+
 
 export default function Navbar() {
   const { currentUser } = useAppSelector((state: RootState) => state.currentUser);

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 'use client';
 
@@ -8,8 +9,57 @@ import { setCurrentUser } from '@/redux/features/currentUser/currentUserSlice';
 import Image from 'next/image';
 import { toast } from 'react-hot-toast';
 import { useUpdateUserMutation } from '@/redux/features/currentUser/currentUserApi';
-import { postImage } from '@/utils/postImage';
 
+// Cloudinary upload response type
+interface CloudinaryUploadResponse {
+  secure_url: string;
+  public_id: string;
+  [key: string]: any;
+}
+
+// Cloudinary uploader function
+const uploadImageToCloudinary = async (file: File): Promise<string> => {
+  try {
+    if (!file) {
+      throw new Error('No image file selected');
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!);
+
+    console.log('FarmerProfileUpdate: Initiating image upload', {
+      fileName: file.name,
+      fileSize: file.size,
+      uploadPreset: process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET,
+    });
+
+    const response = await fetch(
+      `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+      {
+        method: 'POST',
+        body: formData,
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error?.message || 'Upload failed');
+    }
+
+    const data: CloudinaryUploadResponse = await response.json();
+    console.log('FarmerProfileUpdate: Image upload successful', {
+      secureUrl: data.secure_url,
+      publicId: data.public_id,
+    });
+
+    return data.secure_url;
+  } catch (error: any) {
+    console.error('FarmerProfileUpdate: Error uploading image:', error.message);
+    toast.error(`Failed to upload image: ${error.message}`);
+    throw error;
+  }
+};
 
 interface FarmerProfileUpdateProps {
   isOpen: boolean;
@@ -38,7 +88,7 @@ export default function FarmerProfileUpdate({ isOpen, onClose }: FarmerProfileUp
         email: currentUser.email || '',
         phone: currentUser.phone || '',
         address: currentUser.address || '',
-        photo: currentUser.photo || '',
+        photo: currentUser.photo || 'https://i.postimg.cc/4yq4jX4W/default-avatar.png',
       });
     }
   }, [currentUser]);
@@ -62,15 +112,15 @@ export default function FarmerProfileUpdate({ isOpen, onClose }: FarmerProfileUp
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      console.log('FarmerProfileUpdate: Image selected, uploading...');
+      console.log('FarmerProfileUpdate: Image selected, uploading...', { fileName: file.name, fileSize: file.size });
       setIsUploading(true);
       try {
-        const imageUrl = await postImage(file);
+        const imageUrl = await uploadImageToCloudinary(file);
         console.log('FarmerProfileUpdate: Image uploaded, URL:', imageUrl);
         setFormData((prev) => ({ ...prev, photo: imageUrl }));
+        toast.success('Image uploaded successfully');
       } catch (error) {
         console.error('FarmerProfileUpdate: Error uploading image:', error);
-        toast.error('Failed to upload image');
       } finally {
         setIsUploading(false);
       }
@@ -108,15 +158,15 @@ export default function FarmerProfileUpdate({ isOpen, onClose }: FarmerProfileUp
       <div className="bg-white p-6 rounded-lg shadow-md max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
         <h2 className="text-xl font-semibold mb-4 text-center">Update Profile</h2>
         <form onSubmit={handleSubmit}>
-            <div className="flex justify-center mb-4">
-              <Image
-                src={formData.photo}
-                alt="Profile preview"
-                width={100}
-                height={100}
-                className="w-20 h-20 rounded-full border-3 border-green-700 object-cover"
-              />
-            </div>
+          <div className="flex justify-center mb-4">
+            <Image
+              src={formData.photo}
+              alt="Profile preview"
+              width={100}
+              height={100}
+              className="w-20 h-20 rounded-full border-3 border-green-700 object-cover"
+            />
+          </div>
           {error && (
             <p className="text-red-600 text-sm text-center mb-4">
               {'status' in error && error.status === 401

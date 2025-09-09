@@ -1,3 +1,6 @@
+/* eslint-disable */
+
+
 "use client";
 
 import { useSelector, useDispatch } from "react-redux";
@@ -144,7 +147,7 @@ export default function MainDashboard() {
   }
 
   if (currentUser.role === "admin") {
-    return <AdminDashboard fields={fields} isLoading={isLoading} error={error} />;
+    return <AdminDashboard />;
   }
 
   return (

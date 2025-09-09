@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 'use client';
 
@@ -5,11 +6,61 @@ import { useState } from 'react';
 import PostCard from '@/components/forum/PostCard';
 import { useGetPostsQuery, useCreatePostMutation } from '@/redux/features/posts/postApi';
 import { Camera, Send, Search } from 'lucide-react';
-import { postImage } from '@/utils/postImage';
 import { TPostTopic } from '@/types/types';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/redux/store';
 import { toast } from 'react-hot-toast';
+
+// Cloudinary upload response type
+interface CloudinaryUploadResponse {
+  secure_url: string;
+  public_id: string;
+  [key: string]: any;
+}
+
+// Cloudinary uploader function
+const uploadImageToCloudinary = async (file: File): Promise<string> => {
+  try {
+    if (!file) {
+      throw new Error('No image file selected');
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!);
+
+    console.log('uploadImageToCloudinary: Initiating upload', {
+      fileName: file.name,
+      fileSize: file.size,
+      uploadPreset: process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET,
+    });
+
+    const response = await fetch(
+      `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+      {
+        method: 'POST',
+        body: formData,
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error?.message || 'Upload failed');
+    }
+
+    const data: CloudinaryUploadResponse = await response.json();
+    console.log('uploadImageToCloudinary: Upload successful', {
+      secureUrl: data.secure_url,
+      publicId: data.public_id,
+    });
+
+    return data.secure_url;
+  } catch (error: any) {
+    console.error('uploadImageToCloudinary: Error', error.message);
+    toast.error(`Failed to upload image: ${error.message}`);
+    throw error;
+  }
+};
 
 export default function PostsForumPage() {
   const { data: posts, isLoading, error } = useGetPostsQuery();
@@ -33,6 +84,7 @@ export default function PostsForumPage() {
         setImagePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
+      console.log('handleImageUpload: Selected file', { fileName: file.name, fileSize: file.size });
     }
   };
 
@@ -50,11 +102,13 @@ export default function PostsForumPage() {
     if (!postText.trim()) {
       setErrorMessage('Post text is required');
       console.log('handleSubmit - Error: Post text is empty');
+      toast.error('Post text is required');
       return;
     }
     if (postTopics.length === 0) {
       setErrorMessage('At least one topic is required');
       console.log('handleSubmit - Error: postTopics is empty:', postTopics);
+      toast.error('At least one topic is required');
       return;
     }
     try {
@@ -62,14 +116,13 @@ export default function PostsForumPage() {
       if (selectedImage) {
         setIsUploadingImage(true);
         console.log('handleSubmit - Starting image upload for:', selectedImage.name);
-        imageUrl = await postImage(selectedImage);
-        // Mock URL for testing
-        imageUrl = 'https://i.postimg.cc/9Q9nHyc6/field3.jpg';
+        imageUrl = await uploadImageToCloudinary(selectedImage);
         console.log('handleSubmit - Image upload complete, URL:', imageUrl);
         setIsUploadingImage(false);
         if (!imageUrl) {
           setErrorMessage('Failed to upload image');
           console.log('handleSubmit - Error: Image upload failed');
+          toast.error('Failed to upload image');
           return;
         }
       }
@@ -101,7 +154,6 @@ export default function PostsForumPage() {
     'weather', 'harvest', 'equipment', 'market', 'pest', 'technology',
   ];
 
-  // Filter posts based on search query and filter option
   const filteredPosts = posts?.filter((post) => {
     const matchesSearch = post.postText.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCreator = filter === 'all' || post.creatorId?._id === currentUser?._id;
@@ -115,11 +167,9 @@ export default function PostsForumPage() {
         <p className="mb-6">Farmers can post questions, share experiences, and interact here.</p>
       </div>
       <div className="flex flex-col md:flex-row gap-5">
-        {/* Left Section - Sticky */}
-        <div className="w-full md:w-1/3 space-y-4 sticky top-10 self-start">
-          {/* Search Bar and Filter */}
-          <div className="mb-6 flex items-center justify-between">
-            <div className="relative w-[23vw] mx-auto">
+        <div className="w-full md:w-1/3 space-y-4 md:sticky top-10 self-start">
+          <div className="mb-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="relative w-full sm:w-[23vw]">
               <input
                 type="text"
                 value={searchQuery}
@@ -129,7 +179,7 @@ export default function PostsForumPage() {
               />
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
             </div>
-            <div className=" max-w-md mx-auto">
+            <div className="w-full sm:max-w-md">
               <select
                 value={filter}
                 onChange={(e) => {
@@ -205,7 +255,6 @@ export default function PostsForumPage() {
             <p className="text-sm text-gray-600">Active Users: {new Set(posts?.map((p) => p.creatorId)).size || 0}</p>
           </div>
         </div>
-        {/* Right Section - Feed */}
         <div className="w-full md:w-3/5">
           {filter === 'my' && !currentUser ? (
             <p className="text-red-600 text-center">Please log in to view your posts.</p>

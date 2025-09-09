@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -7,13 +8,64 @@ import { RootState } from "@/redux/store";
 import { setCurrentUser } from "@/redux/features/currentUser/currentUserSlice";
 import Image from "next/image";
 import { toast } from "react-hot-toast";
-import { postImage } from "@/utils/postImage";
 import PostCard from "@/components/forum/PostCard";
 import { useUpdateUserMutation } from "@/redux/features/currentUser/currentUserApi";
 import { useGetPostsQuery } from "@/redux/features/posts/postApi";
 import { useGetMyFieldsQuery } from "@/redux/features/fields/fieldsApi";
 import { IPost, TField } from "@/types/types";
 import FieldInProfile from "@/components/farmerDashboard/FieldInProfile";
+
+// Cloudinary upload response type
+interface CloudinaryUploadResponse {
+  secure_url: string;
+  public_id: string;
+  [key: string]: any;
+}
+
+// Cloudinary uploader function
+const uploadImageToCloudinary = async (file: File): Promise<string> => {
+  try {
+    if (!file) throw new Error("No image file selected");
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append(
+      "upload_preset",
+      process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!
+    );
+
+    console.log("uploadImageToCloudinary: Initiating upload", {
+      fileName: file.name,
+      fileSize: file.size,
+      uploadPreset: process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET,
+    });
+
+    const response = await fetch(
+      `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error?.message || "Upload failed");
+    }
+
+    const data: CloudinaryUploadResponse = await response.json();
+    console.log("uploadImageToCloudinary: Upload successful", {
+      secureUrl: data.secure_url,
+      publicId: data.public_id,
+    });
+
+    return data.secure_url;
+  } catch (error: any) {
+    console.error("uploadImageToCloudinary: Error", error.message);
+    toast.error(`Failed to upload image: ${error.message}`);
+    throw error;
+  }
+};
 
 export default function ProfilePage() {
   const dispatch = useDispatch();
@@ -55,7 +107,7 @@ export default function ProfilePage() {
       console.log("ProfilePage: Image selected, uploading...");
       setIsUploading(true);
       try {
-        const imageUrl = await postImage(file);
+        const imageUrl = await uploadImageToCloudinary(file);
         console.log("ProfilePage: Image uploaded, URL:", imageUrl);
         setFormData((prev) => ({ ...prev, photo: imageUrl }));
       } catch (error) {
@@ -84,7 +136,7 @@ export default function ProfilePage() {
       console.log("ProfilePage: User updated:", response);
       dispatch(setCurrentUser(response.data));
       toast.success("Profile updated successfully");
-      router.push("/farmer");
+
     } catch (err) {
       console.error("ProfilePage: Failed to update user:", err);
       toast.error("Failed to update profile");
@@ -92,10 +144,8 @@ export default function ProfilePage() {
   };
 
   const handleCancel = () => {
-    router.push("/farmer");
+    router.push("/");
   };
-
-  console.log("fields: ", fields);
 
   const myPosts = currentUser
     ? posts.filter((post: IPost) => post.creatorId?._id === currentUser._id)

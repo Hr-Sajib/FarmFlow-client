@@ -8,6 +8,7 @@ import axios, { AxiosError } from 'axios';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/redux/store';
 import { toast } from 'react-hot-toast';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // Native TypeScript interfaces
 interface Message {
@@ -32,6 +33,7 @@ const ChatPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const socketRef = useRef<Socket | null>(null);
   const currentAssistantMessageRef = useRef<string>('');
@@ -43,7 +45,6 @@ const ChatPage: React.FC = () => {
   const fetchConversations = async () => {
     if (userPhone) {
       try {
-        // const response = await axios.get(`http://localhost:5100/chat/my-chats/${userPhone}`);
         const response = await axios.get(`http://31.97.224.58:5101/chat/my-chats/${userPhone}`);
         console.log('ChatPage - Chat conversations:', response.data);
         if (response.data.data && Array.isArray(response.data.data)) {
@@ -68,7 +69,6 @@ const ChatPage: React.FC = () => {
   // Initialize WebSocket connection
   useEffect(() => {
     socketRef.current = io('http://31.97.224.58:5101', {
-    // socketRef.current = io('http://localhost:5100', {
       reconnection: true,
       transports: ['websocket'],
     });
@@ -154,7 +154,6 @@ const ChatPage: React.FC = () => {
     setError(null);
 
     if (socketRef.current) {
-      // Strip _id and createdAt from messages for the payload
       const payloadMessages = [...messages, newMessage].map(({ role, content }) => ({ role, content }));
       const payload = { userPhone, conversationId: currentConversationId || undefined, messages: payloadMessages };
       console.log('ChatPage - Sending WebSocket chat event with payload:', payload);
@@ -177,9 +176,7 @@ const ChatPage: React.FC = () => {
     }
 
     try {
-      // Create an empty conversation
       const response = await axios.post('http://31.97.224.58:5101/chat', {
-      // const response = await axios.post('http://localhost:5100/chat', {
         userPhone,
         messages: [],
       });
@@ -189,6 +186,7 @@ const ChatPage: React.FC = () => {
       setMessages([]);
       await fetchConversations();
       toast.success('New conversation created');
+      setIsSidebarOpen(false);
     } catch (err) {
       console.error('ChatPage - Error creating new conversation:', err);
       setError('Failed to create new conversation');
@@ -201,6 +199,27 @@ const ChatPage: React.FC = () => {
     console.log('ChatPage - Selected conversation:', conversation._id);
     setMessages(conversation.messages);
     setCurrentConversationId(conversation._id);
+    setIsSidebarOpen(false);
+  };
+
+  // Handle deleting a conversation
+  const handleDeleteConversation = async (conversationId: string) => {
+    try {
+      const response = await axios.delete(`http://31.97.224.58:5101/chat/${conversationId}`);
+      console.log('ChatPage - Conversation deleted:', response.data);
+      toast.success(response.data.message || 'Conversation deleted successfully');
+      if (currentConversationId === conversationId) {
+        setCurrentConversationId(null);
+        setMessages([]);
+      }
+      await fetchConversations();
+      setIsSidebarOpen(false);
+    } catch (err) {
+      console.error('ChatPage - Error deleting conversation:', err);
+      const axiosError = err as AxiosError<{ message: string }>;
+      setError(axiosError.response?.data?.message || 'Failed to delete conversation');
+      toast.error(axiosError.response?.data?.message || 'Failed to delete conversation');
+    }
   };
 
   // Markdown components with proper typing
@@ -261,31 +280,25 @@ const ChatPage: React.FC = () => {
     }).split('/').join('-');
   };
 
-
-    // Handle deleting a conversation
-  const handleDeleteConversation = async (conversationId: string) => {
-    try {
-      // const response = await axios.delete(`http://localhost:5100/chat/${conversationId}`);
-      const response = await axios.delete(`http://31.97.224.58:5101/chat/${conversationId}`);
-      console.log('ChatPage - Conversation deleted:', response.data);
-      toast.success(response.data.message || 'Conversation deleted successfully');
-      if (currentConversationId === conversationId) {
-        setCurrentConversationId(null);
-        setMessages([]);
-      }
-      await fetchConversations();
-    } catch (err) {
-      console.error('ChatPage - Error deleting conversation:', err);
-      const axiosError = err as AxiosError<{ message: string }>;
-      setError(axiosError.response?.data?.message || 'Failed to delete conversation');
-      toast.error(axiosError.response?.data?.message || 'Failed to delete conversation');
-    }
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
   };
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col items-center p-4 pt-12">
-      <div className="w-full flex gap-3">
-        <div className="rounded-l-lg bg-white w-[45%] p-5 shadow-md">
+      {/* Hamburger menu for mobile */}
+      <div className=' w-full'>
+        <button
+        className="sm:hidden text-gray-700 focus:outline-none mb-4"
+        onClick={toggleSidebar}
+        aria-label="Toggle chat history"
+      >►
+      </button>
+      </div>
+
+      <div className="w-full flex flex-col sm:flex-row gap-3">
+        {/* Chat history for desktop */}
+        <div className="hidden sm:block rounded-l-lg bg-white w-full sm:w-[45%] p-5 shadow-md">
           <div className="flex justify-between items-center mb-5">
             <p className="text-xl font-semibold text-green-800">Chat History</p>
             <button
@@ -306,10 +319,9 @@ const ChatPage: React.FC = () => {
                 }`}
                 onClick={() => handleSelectConversation(conv)}
               >
-                <div className='w-full'>
-                  <div className='flex justify-between w-full'>
+                <div className="w-full">
+                  <div className="flex justify-between w-full">
                     <p className="font-semibold">{getConversationTitle(conv.messages)}</p>
-                    {/* delete button  */}
                     <button
                       onClick={() => handleDeleteConversation(conv._id)}
                       className="bg-red-100 px-1 rounded-sm hover:bg-red-200"
@@ -320,12 +332,85 @@ const ChatPage: React.FC = () => {
                   <p className="my-1">{getConversationPreview(conv.messages)}</p>
                   <span className="text-sm bg-green-900 text-white px-2 rounded-md">{formatDate(conv.createdAt)}</span>
                 </div>
-                <div>{/* options icon */}</div>
               </div>
             ))
           )}
         </div>
-        <div className="w-full bg-white rounded-r-lg shadow-md flex flex-col h-[80vh]">
+
+        {/* Mobile sidebar */}
+        <AnimatePresence>
+          {isSidebarOpen && (
+            <motion.div
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ duration: 0.3 }}
+              className="fixed top-0 left-0 h-full w-64 bg-white shadow-lg z-50 sm:hidden"
+            >
+              <div className="flex flex-col p-5 space-y-4">
+                <div className="flex justify-between items-center mb-5">
+                  <p className="text-xl font-semibold text-green-800">Chat History</p>
+                  <button
+                    onClick={toggleSidebar}
+                    className="text-gray-700"
+                    aria-label="Close sidebar"
+                  >
+                    <svg
+                      className="w-6 h-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                </div>
+                {conversations.length === 0 ? (
+                  <p className="text-gray-500">No conversations found.</p>
+                ) : (
+                  conversations.map((conv) => (
+                    <div
+                      key={conv._id}
+                      className={`bg-green-100 p-3 rounded-lg flex mb-2 cursor-pointer hover:bg-green-200 transition-colors duration-200 ${
+                        conv._id === currentConversationId ? 'border-2 border-green-500' : ''
+                      }`}
+                      onClick={() => handleSelectConversation(conv)}
+                    >
+                      <div className="w-full">
+                        <div className="flex justify-between w-full">
+                          <p className="font-semibold">{getConversationTitle(conv.messages)}</p>
+                          <button
+                            onClick={() => handleDeleteConversation(conv._id)}
+                            className="bg-red-100 px-1 rounded-sm hover:bg-red-200"
+                          >
+                            🪣
+                          </button>
+                        </div>
+                        <p className="my-1">{getConversationPreview(conv.messages)}</p>
+                        <span className="text-sm bg-green-900 text-white px-2 rounded-md">{formatDate(conv.createdAt)}</span>
+                      </div>
+                    </div>
+                  ))
+                )}
+                <button
+                  onClick={handleNewConversation}
+                  className="bg-green-200 pb-0.5 w-full py-2 rounded-md text-lg font-semibold hover:bg-green-300"
+                >
+                  New Conversation
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Chat area */}
+        <div className="w-full bg-white rounded-r-lg sm:rounded-l-lg shadow-md flex flex-col h-[80vh]">
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {messages.length === 0 ? (
               <p className="text-gray-500 text-center">Start a conversation or select one from history!</p>

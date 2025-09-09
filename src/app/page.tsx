@@ -8,7 +8,7 @@ import Image from "next/image";
 import { useGetMyFieldsQuery } from "@/redux/features/fields/fieldsApi";
 import { useAppSelector } from "@/redux/hooks";
 import FieldCard from "@/components/farmerDashboard/FieldCard";
-import AlertSection from "@/components/farmerDashboard/AlertSection";
+// import AlertSection from "@/components/farmerDashboard/AlertSection";
 import AdminDashboard from "@/components/admin/AdminDashboard";
 import { updateFieldSensorData } from "@/redux/features/fields/fieldsSlice";
 import { toast } from "react-hot-toast";
@@ -230,7 +230,7 @@ export default function MainDashboard() {
           </div>
         )}
       </section>
-      <AlertSection />
+      {/* <AlertSection /> */}
     </div>
   );
 }

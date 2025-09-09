@@ -4,7 +4,7 @@ import type { RootState } from '@/redux/store';
 export const baseApi = createApi({
   reducerPath: 'baseApi',
   baseQuery: fetchBaseQuery({
-    // baseUrl: 'http://localhost:5100',
+    // baseUrl: 'http://0.0.0.0:5100',
     baseUrl: 'http://31.97.224.58:5101',
     prepareHeaders: (headers, { getState }) => {
       const token = (getState() as RootState).auth.token;

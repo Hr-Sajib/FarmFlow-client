@@ -3,25 +3,45 @@
 'use client';
 
 import Image from 'next/image';
-import { MapPin, Clock, Leaf } from 'lucide-react';
-import { TField } from '@/types/types';
+import { MapPin, Clock, Leaf, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import CreateFieldModal from './CreateField';
+import { toast } from 'react-hot-toast';
+import { useGetAllFieldsQuery, useDeleteFieldMutation } from '@/redux/features/fields/fieldsApi';
 
-type AdminDashboardProps = {
-  fields: TField[];
-  isLoading: boolean;
-  error: any;
-};
-
-export default function AdminDashboard({ fields, isLoading, error }: AdminDashboardProps) {
+export default function AdminDashboard() {
+  const { data: fields = [], isLoading, error } = useGetAllFieldsQuery();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [deleteField] = useDeleteFieldMutation();
+  const [deletingFields, setDeletingFields] = useState<{ [key: string]: boolean }>({}); // Track deletion state per field
+
+  // Handle field deletion
+  const handleDeleteField = async (fieldId: string) => {
+    try {
+      // Set deleting state for this specific field
+      setDeletingFields((prev) => ({ ...prev, [fieldId]: true }));
+      console.log('AdminDashboard: Deleting field with ID:', fieldId);
+      await deleteField(fieldId).unwrap();
+      console.log('AdminDashboard: Field deleted successfully');
+      toast.success('Field deleted successfully');
+      // No need for manual refetch; invalidatesTags: ['Field'] in deleteField mutation
+      // will automatically trigger getAllFields refetch
+    } catch (err: any) {
+      console.error('AdminDashboard: Error deleting field:', err);
+      const errorMessage = err.data?.message || 'Failed to delete field';
+      toast.error(errorMessage);
+    } finally {
+      // Clear deleting state for this field
+      setDeletingFields((prev) => ({ ...prev, [fieldId]: false }));
+    }
+  };
 
   return (
     <div className="px-4 sm:px-6 lg:px-20 pt-16 w-full py-5 bg-gray-100 min-h-screen">
       <section className="mb-8">
         <div className="flex justify-between items-center mb-6">
-          <div className="bg-white flex items-center gap-2 bg-gradient-to-r from-white to-green-100 text-2xl w-64 justify-center rounded-lg shadow-md font-semibold text-blue-800"> <Image
+          <div className="bg-white flex items-center gap-2 bg-gradient-to-r from-white to-green-100 text-2xl w-64 justify-center rounded-lg shadow-md font-semibold text-blue-800">
+            <Image
               width={100}
               height={100}
               className="h-7 w-7"
@@ -144,7 +164,15 @@ export default function AdminDashboard({ fields, isLoading, error }: AdminDashbo
                       {field.shadeOn ? 'Yes' : 'No'}
                     </span>
                   </p>
-                  <div className="flex justify-end gap-4 mt-4">
+                  <div className="flex justify-end gap-2 mt-4">
+                    <button
+                      onClick={() => handleDeleteField(field.fieldId)}
+                      disabled={deletingFields[field.fieldId] || false}
+                      className="inline-flex items-center justify-center bg-red-600 text-white py-1.5 px-3 rounded-md text-sm font-medium hover:bg-red-700 disabled:bg-gray-400 disabled:opacity-50 transition-colors duration-300"
+                    >
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      {deletingFields[field.fieldId] ? 'Deleting...' : 'Delete'}
+                    </button>
                     <a
                       href={`/fields/${field.fieldId}`}
                       className="inline-flex items-center justify-center bg-green-800 text-white py-2 px-4 rounded-tl-xl rounded-br-xl text-sm font-medium hover:bg-green-700 transition-colors duration-300"

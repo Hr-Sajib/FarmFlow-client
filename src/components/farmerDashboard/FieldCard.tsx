@@ -203,7 +203,7 @@ export default function FieldCard({ field }: FieldCardProps) {
             </div>
           </div>
           {/* AI Insights Section */}
-          <div className="bg-gray-50 shadow-sm border-gray-100 rounded-md h-50">
+          <div className="bg-gray-50 shadow-sm border-gray-100 rounded-md h-46">
             <div className="p-4">
               <div className="flex items-center justify-between">
                 <h4 className="text-lg font-semibold text-gray-800 mb-2 flex items-center gap-2">

@@ -1,6 +1,5 @@
-
 import { useState } from "react";
-import { ThumbsUp, ThumbsDown } from "lucide-react";
+import { ThumbsUp, ThumbsDown, Trash2 } from "lucide-react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { IPost, TComment } from "@/types/types";
@@ -39,10 +38,10 @@ export default function PostCard({ post }: PostCardProps) {
   const [dislikePost, { isLoading: isDisliking }] = useDislikePostMutation();
   const [removeDislikePost, { isLoading: isRemovingDislike }] = useRemoveDislikePostMutation();
   const [commentPost, { isLoading: isCommenting }] = useCommentMutation();
-  const [deletePost, { isLoading: isDeleting }] = useDeletePostMutation();
+  const [deletePost] = useDeletePostMutation();
+  const [isDeleting, setIsDeleting] = useState(false); // Per-post deletion state
 
   const [commentText, setCommentText] = useState("");
-
   const userId = currentUser?._id ?? "";
   const hasInitiallyLiked = reactions.likes.by.includes(userId);
   const hasInitiallyDisliked = reactions.dislikes.by.includes(userId);
@@ -97,7 +96,6 @@ export default function PostCard({ post }: PostCardProps) {
     if (!commentText.trim() || !_id || !currentUser) return;
     try {
       await commentPost({ postId: _id, commentText }).unwrap();
-
       const newComment: TComment = {
         commenterName: currentUser.name,
         commenterId: currentUser._id,
@@ -115,14 +113,20 @@ export default function PostCard({ post }: PostCardProps) {
   const handleDeletePost = async () => {
     if (!_id) return;
     try {
+      setIsDeleting(true);
+      console.log(`PostCard: Deleting post ${_id}`);
       await deletePost(_id).unwrap();
       console.log(`PostCard: Deleted post ${_id}`);
       toast.success("Post deleted successfully");
     } catch (error) {
       console.error("Error deleting post:", error);
       toast.error("Failed to delete post");
+    } finally {
+      setIsDeleting(false);
     }
   };
+
+  const isAdmin = currentUser?.role === "admin";
 
   return (
     <div className="bg-white p-4 rounded-lg shadow-md max-w-4xl mx-auto mb-4">
@@ -146,14 +150,15 @@ export default function PostCard({ post }: PostCardProps) {
           </div>
         </div>
         {/* Delete Post Button */}
-        {currentUser?._id === creatorId?._id && (
+        {(isAdmin || currentUser?._id === creatorId?._id) && (
           <button
             onClick={handleDeletePost}
             disabled={isDeleting}
-            className="text-red-600 hover:text-red-800 transition disabled:opacity-50"
+            className="inline-flex items-center justify-center py-1.5 px-3 rounded-md text-sm font-medium text-red-700 disabled:bg-gray-400 disabled:opacity-50 transition-colors duration-300"
             title="Delete post"
           >
-            🗑
+            <Trash2 className="h-4 w-4 mr-1" />
+            {isDeleting ? "Deleting..." : "Delete"}
           </button>
         )}
       </div>

@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "d": "next dev",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -17,10 +17,10 @@
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.523.0",
     "mqtt": "^5.13.1",
-    "next": "15.3.4",
+    "next": "^16.1.1",
     "postcss": "^8.5.6",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
     "react-hot-toast": "^2.5.2",
     "react-leaflet": "^5.0.0",
     "react-markdown": "^10.1.0",

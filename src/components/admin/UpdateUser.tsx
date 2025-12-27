@@ -47,11 +47,7 @@ export default function UpdateUserModal({ isOpen, onClose, user }: UpdateUserMod
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError('');
-    if (!formData.name || !formData.phone || !formData.address || !formData.password) {
-      setFormError('Name, phone, address, and password are required');
-      toast.error('Please fill in all required fields');
-      return;
-    }
+
     try {
       const payload = {
         _id: user._id,

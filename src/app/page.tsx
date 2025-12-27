@@ -155,13 +155,13 @@ export default function MainDashboard() {
       <section className="mb-8">
         <div className="flex h-16">
           <div className="bg-white flex items-center gap-1 bg-gradient-to-r to-green-100 from-white text-2xl w-62 justify-center rounded-md shadow-md font-semibold text-green-800 mb-6">
-            <Image
+            {/* <Image
               width={100}
               height={100}
               className="h-7 w-7"
               alt="logo"
               src="https://i.postimg.cc/pLYBKqTW/farmer-Icon.png"
-            />
+            /> */}
             <h2>Farmer Dashboard</h2>
           </div>
         </div>

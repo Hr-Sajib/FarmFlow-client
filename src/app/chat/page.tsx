@@ -70,7 +70,7 @@ const ChatPage: React.FC = () => {
 
   // Initialize WebSocket connection
   useEffect(() => {
-    socketRef.current = io('http://localhost:5100', {
+    socketRef.current = io('http://31.97.224.58:5000/', {
       reconnection: true,
       transports: ['websocket'],
     });

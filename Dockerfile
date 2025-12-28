@@ -28,7 +28,7 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/node_modules ./node_modules
 
 # Expose port
-EXPOSE 3000
+EXPOSE 3100
 
 # Start Next.js in production
 CMD ["npm", "start"]

@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p 3100 -H 0.0.0.0",
     "lint": "next lint"
   },
   "dependencies": {
@@ -13,8 +13,10 @@
     "@reduxjs/toolkit": "^2.8.2",
     "axios": "^1.10.0",
     "cloudinary": "^2.7.0",
+    "dotenv": "^17.2.3",
     "framer-motion": "^12.19.1",
     "jwt-decode": "^4.0.0",
+    "leaflet": "^1.9.4",
     "lucide-react": "^0.523.0",
     "mqtt": "^5.13.1",
     "next": "^16.1.1",

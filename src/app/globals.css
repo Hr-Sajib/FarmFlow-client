@@ -1,1 +1,119 @@
 @import "tailwindcss";
+
+/* ===========================================================================
+   FarmFlow design tokens
+   Palette taken from a greenhouse interior: diffused daylight on the canvas,
+   deep leaf green for structure, and one saturated lime reserved for signal —
+   live data, primary actions, active navigation. Nothing else uses lime.
+   ========================================================================= */
+@theme {
+  /* surfaces */
+  --color-canvas:      #F2F4EE;  /* app background — light, green-biased */
+  --color-surface:     #FFFFFF;  /* cards */
+  --color-surface-sunk:#EAEDE4;  /* wells, track backgrounds */
+  --color-bark:        #1B2A20;  /* dark card surface */
+  --color-bark-soft:   #2C3D31;  /* dark card, raised */
+
+  /* ink */
+  --color-ink:         #12211A;
+  --color-ink-soft:    #5A6B62;
+  --color-ink-faint:   #8B9990;
+  --color-ink-invert:  #F2F4EE;
+
+  /* brand */
+  --color-canopy:      #14603F;  /* primary green */
+  --color-canopy-deep: #0E4530;
+  --color-canopy-tint: #E3EFE8;
+  --color-shoot:       #C8F04B;  /* the signal lime — used sparingly */
+  --color-shoot-deep:  #A9D42F;
+
+  /* semantic */
+  --color-warn:        #C77A16;
+  --color-warn-tint:   #FBF0DC;
+  --color-alert:       #C2412D;
+  --color-alert-tint:  #F9E7E3;
+  --color-ok:          #2F7A47;
+
+  /* lines */
+  --color-line:        #DDE2D7;
+  --color-line-soft:   #EAEDE4;
+
+  /* type */
+  --font-display: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
+  --font-sans:    var(--font-inter-tight), ui-sans-serif, system-ui, sans-serif;
+  --font-mono:    var(--font-jetbrains), ui-monospace, SFMono-Regular, monospace;
+  --font-bengali: var(--font-noto-bengali), var(--font-inter-tight), sans-serif;
+
+  /* radius — Harvesta's cards are generously rounded */
+  --radius-card: 1.5rem;
+  --radius-tile: 1.125rem;
+  --radius-pill: 999px;
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+  }
+
+  /* Bangla content (AI advisory replies) needs its own face to render well. */
+  :lang(bn), .bn {
+    font-family: var(--font-bengali);
+  }
+
+  ::selection {
+    background: var(--color-shoot);
+    color: var(--color-ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-canopy);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+@layer utilities {
+  /* Numerals in tables and readouts must not jitter as values update. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+    font-family: var(--font-mono);
+  }
+
+  .card-shadow {
+    box-shadow:
+      0 1px 2px rgba(18, 33, 26, 0.04),
+      0 8px 24px -12px rgba(18, 33, 26, 0.12);
+  }
+
+  .card-shadow-lg {
+    box-shadow:
+      0 2px 4px rgba(18, 33, 26, 0.05),
+      0 24px 48px -20px rgba(18, 33, 26, 0.22);
+  }
+}
+
+/* The live indicator: a slow breath rather than a blink, so a dashboard full
+   of them does not flicker. */
+@keyframes pulse-live {
+  0%, 100% { opacity: 1;   transform: scale(1); }
+  50%      { opacity: 0.45; transform: scale(0.82); }
+}
+
+.live-dot {
+  animation: pulse-live 2.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,239 +1,215 @@
-/* eslint-disable */
+import Link from "next/link";
+import {
+  ArrowRight,
+  Radio,
+  MessageSquareText,
+  UserCheck,
+  Waves,
+} from "lucide-react";
 
+import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
+import { ContourField } from "@/components/marketing/ContourField";
+import { LiveReadout } from "@/components/marketing/LiveReadout";
 
-"use client";
+/**
+ * Fully server-rendered. The only client code on this page is the live readout
+ * in the hero, which has to move to make its point.
+ */
 
-import { useSelector, useDispatch } from "react-redux";
-import { RootState } from "@/redux/store";
-import { TField } from "@/types/types";
-import { initializeMqttClient, getMqttClient } from "@/mqtt/mqtt.config";
-import Image from "next/image";
-import { useGetMyFieldsQuery } from "@/redux/features/fields/fieldsApi";
-import { useAppSelector } from "@/redux/hooks";
-import FieldCard from "@/components/farmerDashboard/FieldCard";
-// import AlertSection from "@/components/farmerDashboard/AlertSection";
-import AdminDashboard from "@/components/admin/AdminDashboard";
-import { updateFieldSensorData } from "@/redux/features/fields/fieldsSlice";
-import { toast } from "react-hot-toast";
-import { useEffect, useState } from "react";
+const STEPS = [
+  {
+    icon: Radio,
+    title: "Sensors report continuously",
+    body: "A low-cost ESP32 node in each greenhouse publishes temperature, humidity, soil moisture and light over MQTT. Readings land in seconds, not on your next walk-through.",
+  },
+  {
+    icon: Waves,
+    title: "The dashboard shows what changed",
+    body: "Every field is a live card. Trends run alongside the current reading, so a drift that would take days to notice by eye shows up as a slope.",
+  },
+  {
+    icon: MessageSquareText,
+    title: "Ask, in your own language",
+    body: "Describe the problem or photograph the leaf. The advisor answers in Bangla or English, reading your actual sensor values rather than generic guidance.",
+  },
+  {
+    icon: UserCheck,
+    title: "Escalate to a real expert",
+    body: "When a diagnosis needs a human, the same conversation is handed to a verified agronomist. Nothing is retyped and no context is lost.",
+  },
+];
 
-export default function MainDashboard() {
-  const dispatch = useDispatch();
-  const [sensorDataMap, setSensorDataMap] = useState<{
-    [fieldId: string]: TField["sensorData"];
-  }>({});
-  const [isMqttReady, setIsMqttReady] = useState(false);
-  const [mqttError, setMqttError] = useState<string | null>(null);
-  const { token } = useSelector((state: RootState) => state.auth);
-  const {
-    data: fields = [],
-    isLoading,
-    error,
-  } = useGetMyFieldsQuery(undefined, {
-    skip: !token,
-  });
-
-  const { currentUser } = useAppSelector((state: RootState) => state.currentUser);
-
-  useEffect(() => {
-    if (!currentUser?.farmerId || currentUser.role === "admin") {
-      setIsMqttReady(false);
-      setMqttError(null);
-      return;
-    }
-
-    const topicName = `topic_farmer${currentUser.farmerId.slice(-1)}`;
-    console.log("MainDashboard: Initializing MQTT with topic:", topicName);
-
-    // Retry MQTT connection up to 3 times
-    let retryCount = 0;
-    const maxRetries = 3;
-    const retryInterval = 3000; // 3 seconds
-    const connectTimeout = 10000; // 10 seconds timeout
-
-    const connectMqtt = () => {
-      initializeMqttClient(topicName);
-      const client = getMqttClient();
-
-      if (client) {
-        client.on("connect", () => {
-          console.log("MainDashboard: MQTT client connected to topic:", topicName);
-          setIsMqttReady(true);
-          setMqttError(null);
-        });
-
-        client.on("error", (err) => {
-          console.error("MainDashboard: MQTT connection error:", err);
-          setMqttError("Failed to connect to sensor data feed");
-          if (retryCount < maxRetries) {
-            retryCount++;
-            console.log(`MainDashboard: Retrying MQTT connection (${retryCount}/${maxRetries})`);
-            setTimeout(connectMqtt, retryInterval);
-          } else {
-            toast.error("Failed to connect to sensor data feed after retries");
-            setIsMqttReady(false);
-          }
-        });
-
-        client.on("message", (topic, message) => {
-          try {
-            const messageString = message.toString();
-            const cleaned = messageString.replace(/'/g, '"');
-            const data = JSON.parse(cleaned);
-            console.log(`MainDashboard: MQTT message received`, { topic, data });
-
-            if (data.fieldId) {
-              const sensorData = {
-                temperature: data.temperature || 0,
-                humidity: data.humidity || 0,
-                soilMoisture: data.soil_moisture || 0,
-                lightIntensity: data.light_intensity || 0,
-              };
-              setSensorDataMap((prev) => ({
-                ...prev,
-                [data.fieldId]: sensorData,
-              }));
-              dispatch(
-                updateFieldSensorData({
-                  fieldId: data.fieldId,
-                  sensorData,
-                })
-              );
-              // Force isMqttReady to true since messages are being received
-              if (!isMqttReady) {
-                console.log("MainDashboard: Setting isMqttReady to true due to received message");
-                setIsMqttReady(true);
-                setMqttError(null);
-              }
-            }
-          } catch (err) {
-            console.error(`MainDashboard: Error processing MQTT message from ${topic}:`, err);
-          }
-        });
-
-        // Fallback timeout for MQTT connection
-        const timeoutId = setTimeout(() => {
-          if (!isMqttReady && !mqttError) {
-            console.log("MainDashboard: MQTT connection timeout, forcing isMqttReady to true");
-            setIsMqttReady(true);
-            setMqttError(null);
-          }
-        }, connectTimeout);
-
-        return () => {
-          clearTimeout(timeoutId);
-          if (client) {
-            client.removeAllListeners("message");
-            client.removeAllListeners("connect");
-            client.removeAllListeners("error");
-            client.end();
-            console.log("MainDashboard: MQTT client disconnected");
-            setIsMqttReady(false);
-            setMqttError(null);
-          }
-        };
-      }
-    };
-
-    connectMqtt();
-  }, [currentUser, dispatch, isMqttReady]);
-
-  if (!currentUser) {
-    return (
-      <div className="px-20 pt-16 w-full py-5 bg-gray-100 min-h-screen flex items-center justify-center">
-        <p className="text-gray-600 text-lg font-medium">Loading user data...</p>
-      </div>
-    );
-  }
-
-  if (currentUser.role === "admin") {
-    return <AdminDashboard />;
-  }
-
+export default function LandingPage() {
   return (
-    <div className="px-20 pt-16 w-full py-5 bg-gray-100 min-h-screen">
-      <section className="mb-8">
-        <div className="flex h-16">
-          <div className="bg-white flex items-center gap-1 bg-gradient-to-r to-green-100 from-white text-2xl w-62 justify-center rounded-md shadow-md font-semibold text-green-800 mb-6">
-            {/* <Image
-              width={100}
-              height={100}
-              className="h-7 w-7"
-              alt="logo"
-              src="https://i.postimg.cc/pLYBKqTW/farmer-Icon.png"
-            /> */}
-            <h2>Farmer Dashboard</h2>
+    <div className="min-h-screen">
+      {/* ---------- header ---------- */}
+      <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
+        <span className="font-display text-lg font-semibold tracking-tight">
+          Farm<span className="text-canopy">Flow</span>
+        </span>
+        <nav className="flex items-center gap-2">
+          <Button asChild variant="ghost" size="sm">
+            <Link href="/login">Sign in</Link>
+          </Button>
+          <Button asChild variant="primary" size="sm">
+            <Link href="/register">Create account</Link>
+          </Button>
+        </nav>
+      </header>
+
+      {/* ---------- hero ---------- */}
+      <section className="mx-auto max-w-6xl px-6 pb-20 pt-8 lg:pt-16">
+        <div className="relative overflow-hidden rounded-[2rem] bg-bark px-8 py-14 text-ink-invert lg:px-14 lg:py-20">
+          <ContourField className="pointer-events-none absolute inset-0 h-full w-full text-shoot/25" />
+
+          <div className="relative grid items-center gap-12 lg:grid-cols-[1.15fr_0.85fr]">
+            <div>
+              <Badge tone="onDark" className="mb-6">
+                Built for greenhouses and high-value crops
+              </Badge>
+
+              <h1 className="font-display text-[2.5rem] font-semibold leading-[1.06] tracking-[-0.03em] text-balance lg:text-[3.25rem]">
+                Know what your field needs,{" "}
+                <span className="text-shoot">while it needs it.</span>
+              </h1>
+
+              <p className="mt-6 max-w-lg text-base leading-relaxed text-ink-invert/70">
+                FarmFlow puts live sensor readings, weather, AI crop advice and
+                verified agronomists on one screen — so decisions about water,
+                shade and treatment are made on evidence rather than memory.
+              </p>
+
+              <div className="mt-9 flex flex-wrap items-center gap-3">
+                <Button asChild variant="signal" size="lg">
+                  <Link href="/register">
+                    Start with your first field
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+                <Button
+                  asChild
+                  size="lg"
+                  className="border border-white/20 bg-transparent text-ink-invert hover:bg-white/10"
+                >
+                  <Link href="/login">I already have an account</Link>
+                </Button>
+              </div>
+            </div>
+
+            <LiveReadout />
           </div>
         </div>
-        {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Array.from({ length: 6 }).map((_, index) => (
-              <div
-                key={index}
-                className="bg-white rounded-xl shadow-lg overflow-hidden animate-pulse"
-              >
-                <div className="h-48 bg-gray-300 w-full"></div>
-                <div className="p-6 space-y-4">
-                  <div className="h-4 bg-gray-300 rounded w-3/4"></div>
-                  <div className="h-3 bg-gray-300 rounded w-1/2"></div>
-                  <div className="h-3 bg-gray-300 rounded w-2/3"></div>
-                  <div className="h-10 bg-gray-300 rounded w-full mt-4"></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : error ? (
-          <p className="text-red-600 text-center text-lg font-medium">
-            {error
-              ? "Failed to fetch fields"
-              : "No access token found. Please log in."}
-          </p>
-        ) : fields.length === 0 ? (
-          <p className="text-gray-600 text-center text-lg font-medium">
-            No fields found.
-          </p>
-        ) : !isMqttReady && !mqttError ? (
-          <div className="text-gray-600 text-center text-lg font-medium flex items-center justify-center gap-2">
-            <div className="w-5 h-5 border-2 border-green-600 border-t-transparent rounded-full animate-spin"></div>
-            Connecting to sensor data feed...
-          </div>
-        ) : mqttError ? (
-          <p className="text-red-600 text-center text-lg font-medium">
-            {mqttError}
-          </p>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {fields.map((field) => (
-              <FieldCard
-                key={field.fieldId}
-                field={{
-                  _id: field._id,
-                  fieldId: field.fieldId,
-                  fieldName: field.fieldName,
-                  fieldImage: field.fieldImage,
-                  fieldCrop: field.fieldCrop,
-                  fieldLocation: field.fieldLocation,
-                  fieldSizeInAcres: field.fieldSizeInAcres,
-                  soilType: field.soilType,
-                  farmerId: field.farmerId,
-                  region: field.region,
-                  fieldStatus: field.fieldStatus,
-                  createdAt: field.createdAt,
-                  updatedAt: field.updatedAt,
-                  isDeleted: field.isDeleted,
-                  sensorData: sensorDataMap[field.fieldId] || {
-                    temperature: 0,
-                    humidity: 0,
-                    soilMoisture: 0,
-                    lightIntensity: 0,
-                  },
-                }}
-              />
-            ))}
-          </div>
-        )}
       </section>
-      {/* <AlertSection /> */}
+
+      {/* ---------- the problem ---------- */}
+      <section className="mx-auto max-w-6xl px-6 py-16">
+        <div className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr]">
+          <div>
+            <p className="mb-3 text-[0.6875rem] font-medium uppercase tracking-[0.16em] text-canopy">
+              Why this exists
+            </p>
+            <h2 className="font-display text-3xl font-semibold leading-tight tracking-[-0.02em] text-balance lg:text-4xl">
+              Good advice reaches farmers too late to use.
+            </h2>
+          </div>
+
+          <div className="space-y-6">
+            <p className="text-[1.0625rem] leading-relaxed text-ink-soft">
+              Bangladesh runs roughly{" "}
+              <strong className="font-semibold text-ink">
+                one agricultural extension officer for every 2,500 farmers
+              </strong>
+              . A question about a yellowing leaf waits days for an answer, and
+              by then the answer has changed.
+            </p>
+            <p className="text-[1.0625rem] leading-relaxed text-ink-soft">
+              Meanwhile the conditions that caused it went unrecorded. Without
+              measurement there is no way to tell a watering problem from a
+              nutrient one, so the same mistake repeats next season.
+            </p>
+            <p className="text-[1.0625rem] leading-relaxed text-ink-soft">
+              Controlled environments change that. In a greenhouse the
+              variables are yours to set — which is exactly where continuous
+              measurement pays for the hardware that produces it.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- how it works ---------- */}
+      <section className="mx-auto max-w-6xl px-6 py-16">
+        <h2 className="font-display text-3xl font-semibold tracking-[-0.02em] lg:text-4xl">
+          How it works
+        </h2>
+        <p className="mt-3 max-w-xl text-ink-soft">
+          Four stages, in order. Each one hands something concrete to the next.
+        </p>
+
+        {/* Numbered because this genuinely is a sequence — a reading has to
+            exist before it can be charted, charted before it can be advised on. */}
+        <ol className="mt-10 grid gap-4 sm:grid-cols-2">
+          {STEPS.map((step, i) => {
+            const Icon = step.icon;
+            return (
+              <li
+                key={step.title}
+                className="group rounded-card bg-surface p-7 card-shadow transition-transform duration-300 hover:-translate-y-1"
+              >
+                <div className="mb-5 flex items-center justify-between">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-tile bg-canopy-tint text-canopy">
+                    <Icon className="h-5 w-5" strokeWidth={1.75} />
+                  </span>
+                  <span className="tabular text-sm text-ink-faint">
+                    0{i + 1}
+                  </span>
+                </div>
+                <h3 className="font-display text-lg font-semibold tracking-tight">
+                  {step.title}
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-ink-soft">
+                  {step.body}
+                </p>
+              </li>
+            );
+          })}
+        </ol>
+      </section>
+
+      {/* ---------- call to action ---------- */}
+      <section className="mx-auto max-w-6xl px-6 pb-24 pt-8">
+        <div className="rounded-[2rem] bg-canopy px-8 py-14 text-center text-ink-invert lg:px-16">
+          <h2 className="font-display text-3xl font-semibold tracking-[-0.02em] text-balance lg:text-[2.5rem]">
+            Add a field. Watch it report back.
+          </h2>
+          <p className="mx-auto mt-4 max-w-md text-ink-invert/75">
+            Farmers monitor and control their own fields. Agronomists join as
+            verified experts to answer what the AI hands over.
+          </p>
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <Button asChild variant="signal" size="lg">
+              <Link href="/register">
+                Create a farmer account
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button
+              asChild
+              size="lg"
+              className="border border-white/25 bg-transparent text-ink-invert hover:bg-white/10"
+            >
+              <Link href="/register?role=expert">Join as an expert</Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      <footer className="border-t border-line">
+        <div className="mx-auto flex max-w-6xl flex-col gap-2 px-6 py-8 text-sm text-ink-faint sm:flex-row sm:items-center sm:justify-between">
+          <span className="font-display font-semibold text-ink-soft">FarmFlow</span>
+          <span>Precision farming for controlled environments</span>
+        </div>
+      </footer>
     </div>
   );
 }

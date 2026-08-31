@@ -154,14 +154,14 @@ export default function AdminDashboard() {
                   </p>
                   <p className="text-sm text-gray-600">
                     <span className="font-medium">Motor On:</span>{' '}
-                    <span className={field.motorOn ? 'text-green-600' : 'text-gray-600'}>
-                      {field.motorOn ? 'Yes' : 'No'}
+                    <span className={field.isMotorOn ? 'text-green-600' : 'text-gray-600'}>
+                      {field.isMotorOn ? 'Yes' : 'No'}
                     </span>
                   </p>
                   <p className="text-sm text-gray-600">
                     <span className="font-medium">Shade On:</span>{' '}
-                    <span className={field.shadeOn ? 'text-green-600' : 'text-gray-600'}>
-                      {field.shadeOn ? 'Yes' : 'No'}
+                    <span className={field.isShadeOn ? 'text-green-600' : 'text-gray-600'}>
+                      {field.isShadeOn ? 'Yes' : 'No'}
                     </span>
                   </p>
                   <div className="flex justify-end gap-2 mt-4">

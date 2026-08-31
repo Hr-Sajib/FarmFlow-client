@@ -115,8 +115,8 @@ export default function FieldDetailsPage({ params }: Props) {
     if (data) {
       const field = data as TField;
       // Initialize button states based on fetched field data
-      setMotorStatus(field.motorOn ? "on" : "off");
-      setShadeStatus(field.shadeOn ? "on" : "off");
+      setMotorStatus(field.isMotorOn ? "on" : "off");
+      setShadeStatus(field.isShadeOn ? "on" : "off");
     }
   }, [data]);
 
@@ -152,8 +152,8 @@ export default function FieldDetailsPage({ params }: Props) {
       };
 
       const response = await axios.post(
-        // `http://31.97.224.58:5000/field/fields/${fieldId}/longInsights`,
-        `http://31.97.224.58:5000/field/fields/${fieldId}/longInsights`,
+        // `http://localhost:5002/field/fields/${fieldId}/longInsights`,
+        `http://localhost:5002/field/fields/${fieldId}/longInsights`,
         { data: fieldInfo }
       );
       const newInsights = response.data.data.insights;
@@ -207,7 +207,7 @@ export default function FieldDetailsPage({ params }: Props) {
       // Update field in database
       try {
         const updateData = {
-          [actuator === "motor" ? "motorOn" : "shadeOn"]: status === "on",
+          [actuator === "motor" ? "isMotorOn" : "isShadeOn"]: status === "on",
         };
         await updateField({ fieldId, data: updateData }).unwrap();
         console.log(

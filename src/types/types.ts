@@ -20,8 +20,8 @@ export type TField = {
     lightIntensity: number;
   };
   insights?: string;
-  motorOn?: boolean;
-  shadeOn?: boolean;
+  isMotorOn?: boolean;
+  isShadeOn?: boolean;
 };
 
 export type TCurrentUser = {

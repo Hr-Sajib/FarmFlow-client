@@ -152,8 +152,8 @@ export default function FieldDetailsPage({ params }: Props) {
       };
 
       const response = await axios.post(
-        // `http://localhost:5002/field/fields/${fieldId}/longInsights`,
-        `http://localhost:5002/field/fields/${fieldId}/longInsights`,
+        // `http://localhost:5002/field/${fieldId}/longInsights`,
+        `http://localhost:5002/field/${fieldId}/longInsights`,
         { data: fieldInfo }
       );
       const newInsights = response.data.data.insights;

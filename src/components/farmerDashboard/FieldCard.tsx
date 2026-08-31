@@ -96,7 +96,7 @@ export default function FieldCard({ field }: FieldCardProps) {
       console.log("FieldCard: Sending fieldInfo to insights API:", fieldInfo);
 
       const response = await axios.post(
-        `http://31.97.224.58:5000/field/fields/${field.fieldId}/insights`,
+        `http://localhost:5002/field/${field.fieldId}/insights`,
         { data: fieldInfo }
       );
       const newInsights = response.data.data.insights;

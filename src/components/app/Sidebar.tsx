@@ -26,8 +26,11 @@ import { logout } from "@/lib/session";
  * ever covered by it. Pinning only decides whether the expansion persists once
  * the pointer leaves.
  */
-const RAIL = "4.5rem"; // 72px — icons only
-const PANEL = "15.75rem"; // 252px — icons with labels
+// The sidebar is a card that floats clear of the window on every side, so the
+// track it sits in is the visible width plus a gutter each side.
+const GUTTER_PX = 12; // matches the inset-3 on the panel
+const RAIL = `${(72 + GUTTER_PX * 2) / 16}rem`; // 72px of icons
+const PANEL = `${(252 + GUTTER_PX * 2) / 16}rem`; // 252px of icons and labels
 const PIN_KEY = "farmflow:sidebar-pinned";
 
 type NavItem = { href: string; label: string; icon: typeof LayoutGrid };
@@ -112,11 +115,9 @@ export function Sidebar({ user }: { user: User }) {
   return (
     <aside
       style={{ width: open ? PANEL : RAIL }}
-      // z-30 is load-bearing, not decoration. The expanded panel overflows the
-      // rail and floats over the page; positioned content inside <main> comes
-      // later in the DOM, so without an explicit layer it wins the stacking
-      // order and swallows pointer events over the panel — the sidebar would
-      // collapse as soon as the cursor reached a label.
+      // z-30 keeps the card above positioned content in <main>, which comes
+      // later in the DOM and would otherwise win the stacking order and swallow
+      // pointer events over the panel — collapsing the sidebar mid-click.
       className="sticky top-0 z-30 hidden h-screen shrink-0 transition-[width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] lg:block"
     >
       <div
@@ -133,7 +134,10 @@ export function Sidebar({ user }: { user: User }) {
             setHovered(false);
           }
         }}
-        className="absolute inset-0 flex flex-col overflow-hidden border-r border-line bg-surface py-5"
+        // inset-3 is what lifts the card off all four edges. It is a card
+        // rather than a full-height column, so it carries a border and radius
+        // all the way round instead of a single divider on its right.
+        className="absolute inset-3 flex flex-col overflow-hidden rounded-card border border-line bg-surface py-5 card-shadow"
       >
         {/* ---------- brand + pin ----------
             The toggle is always visible and always clickable. Hover expansion

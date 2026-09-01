@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Pencil, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
@@ -9,6 +9,8 @@ import { apiCall } from "@/lib/session";
 import { Button } from "@/components/ui/Button";
 import { Input, Label } from "@/components/ui/Field";
 import { ImageUpload } from "@/components/ui/ImageUpload";
+import { Modal } from "@/components/ui/Modal";
+import { AutoHeight } from "@/components/ui/AutoHeight";
 import type { Field } from "@/lib/types";
 
 const SOIL_TYPES = ["clay", "loam", "sandy", "silt", "peat", "chalk", "saline"] as const;
@@ -37,7 +39,6 @@ export function EditFieldDialog({ field }: { field: Field }) {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [confirming, setConfirming] = useState(false);
-  const panelRef = useRef<HTMLDivElement>(null);
 
   const [form, setForm] = useState({
     fieldName: field.fieldName,
@@ -51,18 +52,6 @@ export function EditFieldDialog({ field }: { field: Field }) {
 
   const set = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) =>
     setForm((prev) => ({ ...prev, [key]: value }));
-
-  // Escape closes, and focus moves into the panel so the keyboard lands
-  // somewhere useful rather than back at the top of the page.
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-    document.addEventListener("keydown", onKey);
-    panelRef.current?.querySelector("input")?.focus();
-    return () => document.removeEventListener("keydown", onKey);
-  }, [open]);
 
   const save = async () => {
     const name = form.fieldName.trim();
@@ -130,8 +119,8 @@ export function EditFieldDialog({ field }: { field: Field }) {
     }
   };
 
-  if (!open) {
-    return (
+  return (
+    <>
       <button
         type="button"
         onClick={() => setOpen(true)}
@@ -140,23 +129,14 @@ export function EditFieldDialog({ field }: { field: Field }) {
       >
         <Pencil className="h-4 w-4" strokeWidth={1.85} />
       </button>
-    );
-  }
 
-  return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label={`Edit ${field.fieldName}`}
-      className="fixed inset-0 z-50 flex items-end justify-center bg-bark/40 p-0 backdrop-blur-sm sm:items-center sm:p-6"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) setOpen(false);
-      }}
-    >
-      <div
-        ref={panelRef}
-        className="max-h-[90dvh] w-full max-w-lg overflow-y-auto rounded-t-card bg-surface p-6 card-shadow-lg sm:rounded-card"
+      <Modal
+        open={open}
+        onClose={() => setOpen(false)}
+        label={`Edit ${field.fieldName}`}
+        className="max-w-lg"
       >
+      <div>
         <div className="mb-5 flex items-start justify-between gap-4">
           <div>
             <h2 className="font-display text-lg font-semibold tracking-tight">
@@ -279,6 +259,7 @@ export function EditFieldDialog({ field }: { field: Field }) {
         </div>
 
         <div className="mt-6 border-t border-line-soft pt-4">
+          <AutoHeight>
           {confirming ? (
             <div>
               {/* Says exactly what is lost, so the confirmation is informed. */}
@@ -318,8 +299,10 @@ export function EditFieldDialog({ field }: { field: Field }) {
               Remove this field
             </button>
           )}
+          </AutoHeight>
         </div>
       </div>
-    </div>
+      </Modal>
+    </>
   );
 }

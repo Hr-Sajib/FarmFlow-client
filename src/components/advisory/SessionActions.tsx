@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Field";
 import { cn } from "@/lib/utils";
 import type { AdvisorySession, User } from "@/lib/types";
+import { AutoHeight } from "@/components/ui/AutoHeight";
 
 /**
  * Closing the loop: an expert or the owning farmer can mark a session resolved,
@@ -97,6 +98,8 @@ export function SessionActions({
         </span>
       ) : null}
 
+      {/* The feedback panel is tall and appears in place. */}
+      <AutoHeight className="w-full">
       {rating ? (
         <div className="w-full rounded-card bg-surface p-4 card-shadow">
           <p className="text-sm font-medium">Did this advice help?</p>
@@ -138,6 +141,7 @@ export function SessionActions({
           </div>
         </div>
       ) : null}
+      </AutoHeight>
     </div>
   );
 }

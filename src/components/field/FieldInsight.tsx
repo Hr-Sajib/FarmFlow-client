@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { API_BASE } from "@/lib/config";
 import { Button } from "@/components/ui/Button";
+import { AutoHeight } from "@/components/ui/AutoHeight";
 
 type InsightPayload = {
   insight: string;
@@ -68,6 +69,9 @@ export function FieldInsight({ fieldId }: { fieldId: string }) {
         ) : null}
       </div>
 
+      {/* Prompt, spinner and result are three very different heights. The
+          card grows into each one instead of snapping between them. */}
+      <AutoHeight>
       {!data && !loading ? (
         <div className="mt-4">
           <p className="text-sm leading-relaxed text-ink-soft">
@@ -115,6 +119,7 @@ export function FieldInsight({ fieldId }: { fieldId: string }) {
           </div>
         </>
       ) : null}
+      </AutoHeight>
     </div>
   );
 }

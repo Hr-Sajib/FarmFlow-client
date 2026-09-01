@@ -9,6 +9,7 @@ import { API_BASE } from "@/lib/config";
 import { apiCall } from "@/lib/session";
 import { Button } from "@/components/ui/Button";
 import type { User } from "@/lib/types";
+import { AutoHeight } from "@/components/ui/AutoHeight";
 
 /**
  * Hands the conversation to a verified human expert.
@@ -68,6 +69,9 @@ export function EscalateButton({ sessionId }: { sessionId: string }) {
         They will see this whole conversation, so nothing needs retyping.
       </p>
 
+      {/* Spinner, expert list and the empty case are three heights in the
+          same panel. */}
+      <AutoHeight>
       {experts === null ? (
         <div className="mt-4 flex items-center gap-2 text-sm text-ink-soft">
           <Loader2 className="h-4 w-4 animate-spin" /> Finding experts…
@@ -100,6 +104,7 @@ export function EscalateButton({ sessionId }: { sessionId: string }) {
           ))}
         </ul>
       )}
+      </AutoHeight>
 
       <button
         onClick={() => setOpen(false)}

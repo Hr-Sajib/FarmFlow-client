@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/Button";
 import { Input, FormField } from "@/components/ui/Field";
 import { forgotPassword, verifyResetCode, resetPassword } from "@/lib/session";
+import { AutoHeight } from "@/components/ui/AutoHeight";
 
 type Stage = "email" | "code" | "password";
 
@@ -76,8 +77,11 @@ export function ResetFlow() {
     }
   };
 
-  if (stage === "email") {
-    return (
+  // Each stage is a different height; the shell animates between them
+  // rather than snapping, so the panel reads as one form advancing.
+  const stageContent = () => {
+    if (stage === "email") {
+      return (
       <>
         <h1 className="font-display text-2xl font-semibold tracking-tight">
           Reset your password
@@ -106,8 +110,8 @@ export function ResetFlow() {
     );
   }
 
-  if (stage === "code") {
-    return (
+    if (stage === "code") {
+      return (
       <>
         <button
           type="button"
@@ -152,8 +156,8 @@ export function ResetFlow() {
     );
   }
 
-  return (
-    <>
+    return (
+      <>
       <h1 className="font-display text-2xl font-semibold tracking-tight">
         Set a new password
       </h1>
@@ -179,4 +183,7 @@ export function ResetFlow() {
       </form>
     </>
   );
+  };
+
+  return <AutoHeight>{stageContent()}</AutoHeight>;
 }

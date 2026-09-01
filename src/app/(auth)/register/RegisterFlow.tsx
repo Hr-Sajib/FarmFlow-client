@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/Button";
 import { Input, FormField } from "@/components/ui/Field";
 import { login, registerUser } from "@/lib/session";
+import { AutoHeight } from "@/components/ui/AutoHeight";
 
 type Role = "farmer" | "expert";
 
@@ -51,8 +52,11 @@ export function RegisterFlow({ initialRole }: { initialRole: Role | null }) {
     formState: { errors },
   } = useForm<Values>({ resolver: zodResolver(schema) });
 
-  if (!role) {
-    return (
+  // Choosing a role swaps a short picker for a long form. Animating the
+  // height keeps that as one panel growing rather than two screens.
+  const content = () => {
+    if (!role) {
+      return (
       <>
         <h1 className="font-display text-2xl font-semibold tracking-tight">
           Create your account
@@ -141,8 +145,8 @@ export function RegisterFlow({ initialRole }: { initialRole: Role | null }) {
     }
   };
 
-  return (
-    <>
+    return (
+      <>
       <button
         type="button"
         onClick={() => setRole(null)}
@@ -209,4 +213,7 @@ export function RegisterFlow({ initialRole }: { initialRole: Role | null }) {
       </form>
     </>
   );
+  };
+
+  return <AutoHeight>{content()}</AutoHeight>;
 }

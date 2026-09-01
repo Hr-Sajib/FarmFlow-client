@@ -79,6 +79,7 @@ export function ChatWindow({
   const [thinking, setThinking] = useState(false);
   const [streaming, setStreaming] = useState("");
   const [connected, setConnected] = useState(false);
+  const [socketError, setSocketError] = useState<string | null>(null);
 
   const socketRef = useRef<Socket | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
@@ -109,9 +110,19 @@ export function ChatWindow({
 
       socket.on("connect", () => {
         setConnected(true);
+        setSocketError(null);
         socket?.emit("session:join", { sessionId: session._id });
       });
       socket.on("disconnect", () => setConnected(false));
+
+      // Without this a rejected handshake is indistinguishable from a slow one:
+      // the composer stays disabled behind "Reconnecting" forever and says
+      // nothing about why. Socket.IO retries on its own, so this reports the
+      // reason rather than giving up.
+      socket.on("connect_error", (err: Error) => {
+        setConnected(false);
+        setSocketError(err.message);
+      });
 
       // History is authoritative — a reconnect replaces rather than appends.
       socket.on("session:history", (payload: { messages: AdvisoryMessage[] }) => {
@@ -246,7 +257,9 @@ export function ChatWindow({
 
       {!connected ? (
         <p className="mt-2 text-center text-xs text-ink-faint">
-          Reconnecting to the conversation…
+          {socketError
+            ? `Can't reach the conversation: ${socketError}`
+            : "Reconnecting to the conversation…"}
         </p>
       ) : null}
       <button type="button" onClick={() => router.refresh()} className="sr-only">

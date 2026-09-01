@@ -39,6 +39,11 @@ export function LiveFieldSync() {
 
       socket = io(`${API_BASE}/telemetry`, { auth: { token } });
 
+      // Silent here too: live tiles would simply stop updating with no clue why.
+      socket.on("connect_error", (err: Error) => {
+        console.warn("[telemetry] socket refused the handshake:", err.message);
+      });
+
       socket.on("connect", () => socket?.emit("telemetry:watch", {}));
 
       socket.on("telemetry:update", () => {

@@ -4,7 +4,8 @@ import { Users2 } from "lucide-react";
 import { serverFetch } from "@/lib/api";
 import type { Post, User } from "@/lib/types";
 import { NewPostForm } from "@/components/forum/NewPostForm";
-import { PostCard } from "@/components/forum/PostCard";
+import { PostFeed } from "@/components/forum/PostFeed";
+import { TopicFilter } from "@/components/forum/TopicFilter";
 
 export const metadata: Metadata = { title: "Community" };
 
@@ -36,6 +37,10 @@ export default async function ForumPage({
 
       <NewPostForm user={user} />
 
+      <div className="mt-5">
+        <TopicFilter current={topic ?? ""} />
+      </div>
+
       {list.length === 0 ? (
         <div className="mt-6 rounded-card border border-dashed border-line bg-surface/60 px-8 py-14 text-center">
           <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-tile bg-canopy-tint text-canopy">
@@ -48,11 +53,7 @@ export default async function ForumPage({
           </p>
         </div>
       ) : (
-        <div className="mt-5 space-y-4">
-          {list.map((post) => (
-            <PostCard key={post._id} post={post} user={user} />
-          ))}
-        </div>
+        <PostFeed posts={list} user={user} />
       )}
     </div>
   );

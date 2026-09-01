@@ -8,6 +8,7 @@ import type { AdvisorySession, User } from "@/lib/types";
 import { StatusBadge } from "@/components/advisory/StatusBadge";
 import { ChatWindow } from "@/components/advisory/ChatWindow";
 import { EscalateButton } from "@/components/advisory/EscalateButton";
+import { SessionActions } from "@/components/advisory/SessionActions";
 
 export const metadata: Metadata = { title: "Conversation" };
 
@@ -60,7 +61,10 @@ export default async function AdvisorySessionPage({
           ) : null}
         </div>
 
-        {canEscalate ? <EscalateButton sessionId={session._id} /> : null}
+        <div className="flex flex-wrap items-center gap-2">
+          {canEscalate ? <EscalateButton sessionId={session._id} /> : null}
+          <SessionActions session={session} user={user} />
+        </div>
       </div>
 
       <ChatWindow session={session} user={user} />

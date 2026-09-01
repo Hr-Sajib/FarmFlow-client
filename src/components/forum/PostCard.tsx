@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { ThumbsDown, ThumbsUp, MessageSquare, BadgeCheck, Send } from "lucide-react";
+import { ThumbsDown, ThumbsUp, MessageSquare, BadgeCheck, Send, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { apiCall } from "@/lib/session";
@@ -12,7 +12,15 @@ import type { Post, User } from "@/lib/types";
 
 type Reaction = "like" | "dislike" | null;
 
-export function PostCard({ post, user }: { post: Post; user: User }) {
+export function PostCard({
+  post,
+  user,
+  onRemoved,
+}: {
+  post: Post;
+  user: User;
+  onRemoved?: (id: string) => void;
+}) {
   const mine: Reaction = post.reactions.likes.includes(user._id)
     ? "like"
     : post.reactions.dislikes.includes(user._id)
@@ -28,6 +36,7 @@ export function PostCard({ post, user }: { post: Post; user: User }) {
   const [draft, setDraft] = useState("");
   const [showComments, setShowComments] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [confirmRemove, setConfirmRemove] = useState(false);
 
   /**
    * The reaction is applied locally first. The server enforces one reaction per
@@ -79,6 +88,25 @@ export function PostCard({ post, user }: { post: Post; user: User }) {
   };
 
   const author = post.creatorId;
+  // Authors may remove their own post; admins may remove any, since that is a
+  // moderation action rather than editing someone's words.
+  const canRemove = user.role === "admin" || author?._id === user._id;
+
+  const remove = async () => {
+    if (!confirmRemove) {
+      setConfirmRemove(true);
+      return;
+    }
+    setBusy(true);
+    try {
+      await apiCall(`/post/${post._id}`, "DELETE");
+      onRemoved?.(post._id);
+      toast.success("Post removed");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not remove the post");
+      setBusy(false);
+    }
+  };
 
   return (
     <article className="rounded-card bg-surface p-5 card-shadow">
@@ -100,6 +128,28 @@ export function PostCard({ post, user }: { post: Post; user: User }) {
           <p className="text-xs text-ink-faint">{timeAgo(post.createdAt)}</p>
         </div>
         {post.region ? <Badge tone="neutral" className="capitalize">{post.region}</Badge> : null}
+
+        {canRemove ? (
+          <button
+            onClick={remove}
+            disabled={busy}
+            className={cn(
+              "shrink-0 rounded-pill px-2.5 py-1.5 text-xs transition-colors",
+              confirmRemove
+                ? "bg-alert-tint text-alert"
+                : "text-ink-faint hover:bg-surface-sunk hover:text-alert"
+            )}
+          >
+            {confirmRemove ? (
+              "Confirm"
+            ) : (
+              <>
+                <Trash2 className="h-3.5 w-3.5" />
+                <span className="sr-only">Remove post</span>
+              </>
+            )}
+          </button>
+        ) : null}
       </header>
 
       <p className="mt-3.5 whitespace-pre-line text-sm leading-relaxed text-ink">

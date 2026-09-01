@@ -6,6 +6,7 @@ import type { Field, User } from "@/lib/types";
 import { Badge } from "@/components/ui/Badge";
 import { ProfileForm } from "./ProfileForm";
 import { DesignationPanel } from "./DesignationPanel";
+import { ChangePassword } from "./ChangePassword";
 
 export const metadata: Metadata = { title: "Profile" };
 
@@ -65,6 +66,14 @@ export default async function ProfilePage() {
       {user.role === "expert" ? <DesignationPanel user={user} /> : null}
 
       <ProfileForm user={user} />
+
+      <section className="mt-6 rounded-card bg-surface p-5 card-shadow">
+        <h2 className="font-display text-base font-semibold">Security</h2>
+        <p className="mt-1 text-sm text-ink-soft">
+          Change the password you use to sign in.
+        </p>
+        <ChangePassword />
+      </section>
     </div>
   );
 }

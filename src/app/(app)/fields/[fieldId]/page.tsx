@@ -12,6 +12,7 @@ import { FieldTrends } from "@/components/charts/FieldTrends";
 import { WeatherCard } from "@/components/field/WeatherCard";
 import { ActuatorControls } from "@/components/field/ActuatorControls";
 import { FieldInsight } from "@/components/field/FieldInsight";
+import { FieldSettings } from "@/components/field/FieldSettings";
 import { timeAgo } from "@/lib/utils";
 
 export async function generateMetadata({
@@ -134,6 +135,7 @@ export default async function FieldDetailPage({
             <h3 className="mb-4 text-sm font-semibold">Controls</h3>
             <ActuatorControls field={field} />
           </div>
+          <FieldSettings field={field} />
         </aside>
       </div>
     </div>

@@ -26,13 +26,13 @@ export function EscalateButton({ sessionId }: { sessionId: string }) {
     setOpen(true);
     if (experts) return;
     try {
-      const res = await fetch(`${API_BASE}/user?role=expert&status=active`, {
+      // A dedicated endpoint: listing all users is admin-only, and a farmer
+      // must be able to pick an expert without that access.
+      const res = await fetch(`${API_BASE}/user/experts`, {
         credentials: "include",
       });
       const body = await res.json();
-      setExperts(
-        (body.data ?? []).filter((u: User) => u.expertStatus === "verified")
-      );
+      setExperts(body.data ?? []);
     } catch {
       setExperts([]);
     }

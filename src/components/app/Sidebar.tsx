@@ -16,6 +16,7 @@ import {
 
 import { cn } from "@/lib/utils";
 import type { User } from "@/lib/types";
+import { Avatar } from "@/components/ui/Avatar";
 import { logout } from "@/lib/session";
 
 /**
@@ -45,13 +46,13 @@ function navFor(role: User["role"]): NavGroup[] {
   const workspace: NavItem[] =
     role === "admin"
       ? [
-          { href: "/dashboard", label: "Overview", icon: LayoutGrid },
+          { href: "/overview", label: "Overview", icon: LayoutGrid },
           { href: "/fields", label: "All fields", icon: Sprout },
           { href: "/advisory", label: "Advisory", icon: MessagesSquare },
           { href: "/forum", label: "Community", icon: Users2 },
         ]
       : [
-          { href: "/dashboard", label: "Dashboard", icon: LayoutGrid },
+          { href: "/overview", label: "Overview", icon: LayoutGrid },
           { href: "/advisory", label: "Advisory", icon: MessagesSquare },
           { href: "/forum", label: "Community", icon: Users2 },
         ];
@@ -146,7 +147,7 @@ export function Sidebar({ user }: { user: User }) {
             hovering cannot be reached by keyboard either. */}
         <div className="flex items-center px-3">
           <Link
-            href="/dashboard"
+            href="/overview"
             aria-label="FarmFlow home"
             className={cn(
               "flex min-w-0 items-center gap-3 overflow-hidden rounded-tile py-2 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
@@ -231,9 +232,7 @@ export function Sidebar({ user }: { user: User }) {
         {/* ---------- account ---------- */}
         <div className="mt-4 border-t border-line px-3 pt-4">
           <div className="flex items-center gap-3 whitespace-nowrap rounded-tile px-[0.9375rem] py-2">
-            <span className="flex h-[1.875rem] w-[1.875rem] shrink-0 items-center justify-center rounded-full bg-canopy-tint text-[0.6875rem] font-semibold text-canopy">
-              {user.fullName.slice(0, 2).toUpperCase()}
-            </span>
+            <Avatar name={user.fullName} photo={user.photo} size={30} />
             <span
               className={cn(
                 "min-w-0 transition-all duration-200 ease-out",

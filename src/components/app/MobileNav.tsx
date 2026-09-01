@@ -6,7 +6,7 @@ import { LayoutGrid, MessagesSquare, Users2, UserRound } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const ITEMS = [
-  { href: "/dashboard", label: "Home", icon: LayoutGrid },
+  { href: "/overview", label: "Overview", icon: LayoutGrid },
   { href: "/advisory", label: "Advisory", icon: MessagesSquare },
   { href: "/forum", label: "Community", icon: Users2 },
   { href: "/profile", label: "Profile", icon: UserRound },

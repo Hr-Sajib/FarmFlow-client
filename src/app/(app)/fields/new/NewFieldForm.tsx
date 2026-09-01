@@ -86,7 +86,7 @@ export function NewFieldForm() {
 
       toast.success(`${field.fieldName} added`);
       router.refresh();
-      router.push("/dashboard");
+      router.push("/overview");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Could not add field");
       setSubmitting(false);

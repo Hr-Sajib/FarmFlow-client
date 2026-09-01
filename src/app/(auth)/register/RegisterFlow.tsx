@@ -26,13 +26,7 @@ const schema = z
       .regex(/^01[0-9]{9}$/, "Use an 11-digit number starting 01")
       .optional()
       .or(z.literal("")),
-    designationTitle: z.string().optional(),
-    designatedFrom: z.string().optional(),
-  })
-  .refine(
-    (v) => !v.designationTitle || Boolean(v.designatedFrom),
-    { message: "Name the institution", path: ["designatedFrom"] }
-  );
+  });
 
 type Values = z.infer<typeof schema>;
 
@@ -122,23 +116,13 @@ export function RegisterFlow({ initialRole }: { initialRole: Role | null }) {
         role,
       };
       if (values.phone) payload.phone = values.phone;
-      if (role === "expert" && values.designationTitle) {
-        payload.designations = [
-          {
-            designationTitle: values.designationTitle,
-            designatedFrom: values.designatedFrom,
-            documents: [],
-          },
-        ];
-      }
-
       await registerUser(payload);
       // Sign in immediately — asking someone to retype what they just entered
       // is friction with no purpose.
       await login(values.email, values.password);
       toast.success("Account created");
       router.refresh();
-      router.push(role === "expert" ? "/profile?verify=1" : "/dashboard");
+      router.push(role === "expert" ? "/profile?verify=1" : "/overview");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Could not create account");
       setSubmitting(false);
@@ -188,15 +172,19 @@ export function RegisterFlow({ initialRole }: { initialRole: Role | null }) {
 
         {role === "expert" ? (
           <div className="space-y-4 rounded-tile bg-surface-sunk p-4">
+            {/* Credentials are not collected here. A designation is only
+                reviewable with its supporting documents attached, and uploading
+                requires a session that does not exist yet during registration —
+                so the whole credential is entered from the profile instead of
+                being split across two steps. */}
             <p className="text-xs font-medium text-ink-soft">
-              Your credentials — you'll upload supporting documents once you're in.
+              Add your credentials after signing in
             </p>
-            <FormField label="Designation" error={errors.designationTitle?.message}>
-              <Input placeholder="Senior Agronomist" {...register("designationTitle")} />
-            </FormField>
-            <FormField label="Institution" error={errors.designatedFrom?.message}>
-              <Input placeholder="Bangladesh Agricultural Research Institute" invalid={Boolean(errors.designatedFrom)} {...register("designatedFrom")} />
-            </FormField>
+            <p className="text-xs leading-relaxed text-ink-faint">
+              You&apos;ll enter each designation with its certificate or
+              appointment letter attached, and an admin reviews it before you
+              can take escalated questions.
+            </p>
           </div>
         ) : null}
 

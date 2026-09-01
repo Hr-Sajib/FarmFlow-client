@@ -47,6 +47,13 @@ export function DesignationPanel({ user }: { user: User }) {
       toast.error("Add both the designation and the institution");
       return;
     }
+    // Without proof there is nothing for the reviewing admin to check, so the
+    // submission is stopped here rather than queued for a decision that
+    // cannot be made. The server enforces the same rule.
+    if (!docs.length) {
+      toast.error("Attach at least one supporting document");
+      return;
+    }
     setSaving(true);
     try {
       await apiCall(`/user/${user._id}`, "PATCH", {
@@ -126,7 +133,7 @@ export function DesignationPanel({ user }: { user: User }) {
           </div>
 
           <div>
-            <Label>Supporting documents</Label>
+            <Label>Supporting documents (required)</Label>
             <label className="flex cursor-pointer items-center gap-2 rounded-tile border border-dashed border-line bg-surface px-4 py-3 text-sm text-ink-soft transition-colors hover:border-canopy hover:text-canopy">
               <input
                 type="file"
@@ -150,7 +157,7 @@ export function DesignationPanel({ user }: { user: User }) {
           </div>
 
           <div className="flex gap-2">
-            <Button size="sm" onClick={save} disabled={saving || uploading}>
+            <Button size="sm" onClick={save} disabled={saving || uploading || !docs.length}>
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
               Submit for review
             </Button>

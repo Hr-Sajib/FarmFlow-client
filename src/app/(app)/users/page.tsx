@@ -17,7 +17,7 @@ export default async function UsersPage({
 }) {
   const me = await serverFetch<User>("/user/me");
   // Enforced on the server: a farmer never receives this markup at all.
-  if (me?.role !== "admin") redirect("/dashboard");
+  if (me?.role !== "admin") redirect("/overview");
 
   const { role } = await searchParams;
   // null means the request failed; [] means no account matches the filter.

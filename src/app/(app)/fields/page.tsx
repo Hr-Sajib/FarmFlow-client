@@ -13,7 +13,7 @@ export const metadata: Metadata = { title: "All fields" };
 /** Admin-only overview of every field in the system. */
 export default async function AllFieldsPage() {
   const me = await serverFetch<User>("/user/me");
-  if (me?.role !== "admin") redirect("/dashboard");
+  if (me?.role !== "admin") redirect("/overview");
 
   // null means the request failed; [] means there genuinely are none.
   const fields = await serverFetch<Field[]>("/field");

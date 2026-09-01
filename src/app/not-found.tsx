@@ -16,7 +16,7 @@ export default function NotFound() {
           to has been removed.
         </p>
         <Button asChild className="mt-6">
-          <Link href="/dashboard">Back to your dashboard</Link>
+          <Link href="/overview">Back to your overview</Link>
         </Button>
       </div>
     </div>

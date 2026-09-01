@@ -57,7 +57,7 @@ export default async function FieldDetailPage({
   return (
     <div className="px-6 py-8 lg:px-10 lg:py-10">
       <Link
-        href="/dashboard"
+        href="/overview"
         className="mb-6 inline-flex items-center gap-1.5 text-sm text-ink-soft transition-colors hover:text-ink"
       >
         <ArrowLeft className="h-4 w-4" />
@@ -135,13 +135,15 @@ export default async function FieldDetailPage({
           <FieldTrends fieldId={fieldId} initial={series ?? []} />
         </div>
 
+        {/* Ordered by how directly each one acts on the field: controls change
+            it, weather is about to, advice is a suggestion. */}
         <aside className="space-y-4">
-          <FieldInsight fieldId={fieldId} />
-          {weather ? <WeatherCard weather={weather} /> : null}
           <div className="rounded-card bg-surface p-5 card-shadow">
             <h3 className="mb-4 text-sm font-semibold">Controls</h3>
             <ActuatorControls field={field} />
           </div>
+          {weather ? <WeatherCard weather={weather} /> : null}
+          <FieldInsight fieldId={fieldId} />
         </aside>
       </div>
     </div>

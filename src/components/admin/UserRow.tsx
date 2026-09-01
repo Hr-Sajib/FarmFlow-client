@@ -66,20 +66,24 @@ export function UserRow({ user }: { user: User }) {
             </Button>
           ) : null}
 
-          <Button
-            size="sm"
-            variant={user.status === "blocked" ? "outline" : "ghost"}
-            disabled={busy}
-            onClick={() =>
-              patch(
-                { status: user.status === "blocked" ? "active" : "blocked" },
-                user.status === "blocked" ? "Account unblocked" : "Account blocked"
-              )
-            }
-          >
-            {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : user.status === "blocked" ? <Undo2 className="h-3.5 w-3.5" /> : <Ban className="h-3.5 w-3.5" />}
-            {user.status === "blocked" ? "Unblock" : "Block"}
-          </Button>
+          {/* Admins are peers: one cannot lock another out. The server refuses
+              it as well, so hiding the control is the affordance, not the rule. */}
+          {user.role !== "admin" ? (
+            <Button
+              size="sm"
+              variant={user.status === "blocked" ? "outline" : "ghost"}
+              disabled={busy}
+              onClick={() =>
+                patch(
+                  { status: user.status === "blocked" ? "active" : "blocked" },
+                  user.status === "blocked" ? "Account unblocked" : "Account blocked"
+                )
+              }
+            >
+              {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : user.status === "blocked" ? <Undo2 className="h-3.5 w-3.5" /> : <Ban className="h-3.5 w-3.5" />}
+              {user.status === "blocked" ? "Unblock" : "Block"}
+            </Button>
+          ) : null}
         </div>
       </div>
 

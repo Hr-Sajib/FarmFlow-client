@@ -2,6 +2,10 @@ import path from "path";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  /** The route was renamed to match the label it is reached by. */
+  async redirects() {
+    return [{ source: "/dashboard", destination: "/overview", permanent: false }];
+  },
   /**
    * A verification build must not write into the directory a running dev
    * server is reading from — Turbopack shares `.next` between the two, and the

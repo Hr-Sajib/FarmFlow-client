@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/Badge";
 import { ProfileForm } from "./ProfileForm";
 import { DesignationPanel } from "./DesignationPanel";
 import { ChangePassword } from "./ChangePassword";
+import { ProfilePhoto } from "./ProfilePhoto";
+import { Avatar } from "@/components/ui/Avatar";
 
 export const metadata: Metadata = { title: "Profile" };
 
@@ -28,19 +30,20 @@ export default async function ProfilePage() {
   return (
     <div className="mx-auto max-w-2xl px-6 py-8 lg:py-10">
       <header className="mb-8 flex items-center gap-4">
-        <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-canopy text-lg font-semibold text-ink-invert">
-          {user.fullName.slice(0, 2).toUpperCase()}
-        </span>
+        <Avatar name={user.fullName} photo={user.photo} size={64} />
         <div className="min-w-0">
           <h1 className="font-display text-2xl font-semibold tracking-tight">
             {user.fullName}
           </h1>
           <p className="mt-1 flex flex-wrap items-center gap-2 text-sm text-ink-soft">
             <span className="capitalize">{user.role}</span>
-            <span className="tabular text-ink-faint">· {user.userCode}</span>
             {expertState ? (
               <Badge tone={expertState.tone}>{expertState.label}</Badge>
             ) : null}
+          </p>
+          <p className="mt-1.5 text-xs text-ink-faint">
+            <span className="capitalize">{user.role}</span> ID{" "}
+            <span className="tabular text-ink-soft">{user.userCode}</span>
           </p>
         </div>
       </header>
@@ -62,6 +65,8 @@ export default async function ProfilePage() {
           </div>
         </div>
       ) : null}
+
+      <ProfilePhoto user={user} />
 
       {user.role === "expert" ? <DesignationPanel user={user} /> : null}
 

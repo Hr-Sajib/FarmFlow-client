@@ -21,11 +21,10 @@ import { logout } from "@/lib/session";
 /**
  * A rail that stays out of the way and widens when it is being used.
  *
- * Two states, one mechanism: pointing at the rail expands it over the page,
- * and pinning it makes the expansion permanent so the content reflows beside
- * it instead of underneath. Hover expansion deliberately overlays rather than
- * pushing — a layout that reflows every time the pointer crosses the edge of
- * the screen is worse than no expansion at all.
+ * Expansion always reserves layout space, whether it came from hovering or
+ * from pinning, so the page content narrows beside the sidebar and nothing is
+ * ever covered by it. Pinning only decides whether the expansion persists once
+ * the pointer leaves.
  */
 const RAIL = "4.5rem"; // 72px — icons only
 const PANEL = "15.75rem"; // 252px — icons with labels
@@ -112,8 +111,7 @@ export function Sidebar({ user }: { user: User }) {
 
   return (
     <aside
-      // Only the pinned width reserves layout space. Hover expansion floats.
-      style={{ width: pinned ? PANEL : RAIL }}
+      style={{ width: open ? PANEL : RAIL }}
       // z-30 is load-bearing, not decoration. The expanded panel overflows the
       // rail and floats over the page; positioned content inside <main> comes
       // later in the DOM, so without an explicit layer it wins the stacking
@@ -122,7 +120,6 @@ export function Sidebar({ user }: { user: User }) {
       className="sticky top-0 z-30 hidden h-screen shrink-0 transition-[width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] lg:block"
     >
       <div
-        style={{ width: open ? PANEL : RAIL }}
         // These belong on the panel, not on the <aside>. Unpinned, the aside
         // stays at rail width while the panel overflows it — so handlers on the
         // aside would fire mouseleave the moment the pointer reached a label,
@@ -136,11 +133,7 @@ export function Sidebar({ user }: { user: User }) {
             setHovered(false);
           }
         }}
-        className={cn(
-          "absolute inset-y-0 left-0 flex flex-col overflow-hidden border-r border-line bg-surface py-5",
-          "transition-[width,box-shadow] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
-          hovered && !pinned && "card-shadow-lg"
-        )}
+        className="absolute inset-0 flex flex-col overflow-hidden border-r border-line bg-surface py-5"
       >
         {/* ---------- brand + pin ----------
             The toggle is always visible and always clickable. Hover expansion

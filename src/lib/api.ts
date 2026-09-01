@@ -55,3 +55,26 @@ export async function hasSession(): Promise<boolean> {
   const cookieStore = await cookies();
   return Boolean(cookieStore.get("accessToken")?.value);
 }
+
+/**
+ * Fetch for the unauthenticated endpoints.
+ *
+ * Deliberately separate from `serverFetch`: reading `cookies()` opts a route
+ * into dynamic rendering, and the landing page should stay statically
+ * generated. Without a cookie read it can be prerendered and revalidated.
+ */
+export async function publicFetch<T>(
+  path: string,
+  revalidate = 30
+): Promise<T | null> {
+  try {
+    const response = await fetch(`${API_BASE}/public${path}`, {
+      next: { revalidate },
+    });
+    if (!response.ok) return null;
+    const body = (await response.json()) as ApiEnvelope<T>;
+    return body.data;
+  } catch {
+    return null;
+  }
+}

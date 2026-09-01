@@ -26,19 +26,18 @@ export function LiveFieldSync() {
 
   useEffect(() => {
     let socket: Socket | null = null;
+    let cancelled = false;
 
     // The auth cookie is httpOnly, so the handshake token comes from a short
-    // server round-trip rather than from document.cookie.
+    // server round-trip rather than from document.cookie. The cancelled flag
+    // covers an effect torn down while that request is still in flight.
     const connect = async () => {
       const res = await fetch("/api/socket-token", { credentials: "include" });
-      if (!res.ok) return;
+      if (!res.ok || cancelled) return;
       const { token } = (await res.json()) as { token: string | null };
-      if (!token) return;
+      if (!token || cancelled) return;
 
-      socket = io(`${API_BASE}/telemetry`, {
-        auth: { token },
-        transports: ["websocket"],
-      });
+      socket = io(`${API_BASE}/telemetry`, { auth: { token } });
 
       socket.on("connect", () => socket?.emit("telemetry:watch", {}));
 
@@ -53,6 +52,7 @@ export function LiveFieldSync() {
     void connect();
 
     return () => {
+      cancelled = true;
       socket?.disconnect();
     };
   }, [router]);

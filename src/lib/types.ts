@@ -144,3 +144,20 @@ export type Post = {
   isResolved: boolean;
   createdAt: string;
 };
+
+/** Anonymised reading shown to visitors who have no account. */
+export interface PublicReading {
+  label: string;
+  ts: string;
+  temperature: number | null;
+  humidity: number | null;
+  soilMoisture: number | null;
+  lightIntensity: number | null;
+}
+
+export interface PublicStats {
+  fieldsMonitored: number;
+  readingsLast24h: number;
+  advisorySessionsResolved: number;
+  verifiedExperts: number;
+}

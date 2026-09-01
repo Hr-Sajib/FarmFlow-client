@@ -3,37 +3,53 @@
 import { useEffect, useState } from "react";
 import { Droplets, Sun, Thermometer, Sprout } from "lucide-react";
 
+import { API_BASE } from "@/lib/config";
+import type { PublicReading } from "@/lib/types";
+
 /**
- * The signature element: a readout that keeps moving.
+ * The signature element: real readings from the platform, moving.
  *
  * A static screenshot cannot show that this product is live, which is the one
- * thing separating it from a general farm-management app. Values drift within
- * plausible greenhouse bounds so the hero demonstrates the idea before a
- * visitor has an account.
+ * thing separating it from a general farm-management app. The server renders
+ * the first value so the hero is never blank, then this polls the public
+ * endpoint for updates.
+ *
+ * Polling rather than a socket: an anonymous visitor gets no handshake, no
+ * room membership and no persistent connection to hold open. The endpoint is
+ * read-only, rate limited and carries no farm identity.
  */
 const METRICS = [
-  { key: "temp", label: "Temperature", unit: "°C", icon: Thermometer, base: 27.4, swing: 0.6 },
-  { key: "hum", label: "Humidity", unit: "%", icon: Droplets, base: 68, swing: 2.5 },
-  { key: "soil", label: "Soil moisture", unit: "%", icon: Sprout, base: 54, swing: 1.8 },
-  { key: "light", label: "Light", unit: "klx", icon: Sun, base: 12.6, swing: 1.1 },
-];
+  { key: "temperature", label: "Temperature", unit: "°C", icon: Thermometer, decimals: 1 },
+  { key: "humidity", label: "Humidity", unit: "%", icon: Droplets, decimals: 1 },
+  { key: "soilMoisture", label: "Soil moisture", unit: "%", icon: Sprout, decimals: 1 },
+  { key: "lightIntensity", label: "Light", unit: "lux", icon: Sun, decimals: 0 },
+] as const;
 
-export function LiveReadout() {
-  const [values, setValues] = useState(() => METRICS.map((m) => m.base));
+const POLL_MS = 5000;
+
+export function LiveReadout({ initial }: { initial: PublicReading | null }) {
+  const [reading, setReading] = useState(initial);
 
   useEffect(() => {
-    const id = setInterval(() => {
-      setValues((prev) =>
-        prev.map((v, i) => {
-          const m = METRICS[i];
-          const drift = (Math.random() - 0.5) * m.swing;
-          // Pull gently back toward the baseline so values never wander off.
-          const next = v + drift + (m.base - v) * 0.12;
-          return next;
-        })
-      );
-    }, 2200);
-    return () => clearInterval(id);
+    let cancelled = false;
+
+    const poll = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/public/telemetry/latest`);
+        if (!res.ok || cancelled) return;
+        const body = (await res.json()) as { data: PublicReading | null };
+        if (!cancelled && body.data) setReading(body.data);
+      } catch {
+        // A dropped poll is not worth surfacing — the previous reading stays
+        // on screen and the next tick tries again.
+      }
+    };
+
+    const id = setInterval(poll, POLL_MS);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
   }, []);
 
   return (
@@ -44,13 +60,14 @@ export function LiveReadout() {
           <span className="relative inline-flex h-2 w-2 rounded-full bg-shoot-deep" />
         </span>
         <span className="text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-ink-faint">
-          Greenhouse 02 · live
+          {reading ? `${reading.label} · live` : "Waiting for a reading"}
         </span>
       </div>
 
       <dl className="grid grid-cols-2 gap-x-6 gap-y-4">
-        {METRICS.map((m, i) => {
+        {METRICS.map((m) => {
           const Icon = m.icon;
+          const value = reading?.[m.key];
           return (
             <div key={m.key}>
               <dt className="flex items-center gap-1.5 text-[0.6875rem] text-ink-faint">
@@ -58,8 +75,16 @@ export function LiveReadout() {
                 {m.label}
               </dt>
               <dd className="tabular mt-1 text-2xl font-semibold text-ink transition-[color] duration-300">
-                {values[i].toFixed(1)}
-                <span className="ml-0.5 text-sm font-normal text-ink-faint">{m.unit}</span>
+                {typeof value === "number" ? (
+                  <>
+                    {value.toFixed(m.decimals)}
+                    <span className="ml-0.5 text-sm font-normal text-ink-faint">
+                      {m.unit}
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-ink-faint">—</span>
+                )}
               </dd>
             </div>
           );

@@ -91,14 +91,20 @@ export function ChatWindow({
 
   useEffect(() => {
     let socket: Socket | null = null;
+    // The token fetch is async, so an effect torn down before it resolves would
+    // otherwise create a socket nothing ever disconnects — which is exactly
+    // what React's double-invoked effects do in development.
+    let cancelled = false;
 
     const connect = async () => {
       const res = await fetch("/api/socket-token", { credentials: "include" });
-      if (!res.ok) return;
+      if (!res.ok || cancelled) return;
       const { token } = (await res.json()) as { token: string | null };
-      if (!token) return;
+      if (!token || cancelled) return;
 
-      socket = io(`${API_BASE}/advisory`, { auth: { token }, transports: ["websocket"] });
+      // Polling is left available so a blocked WebSocket upgrade degrades
+      // instead of leaving the conversation stuck on "connecting".
+      socket = io(`${API_BASE}/advisory`, { auth: { token } });
       socketRef.current = socket;
 
       socket.on("connect", () => {
@@ -154,6 +160,7 @@ export function ChatWindow({
 
     void connect();
     return () => {
+      cancelled = true;
       socket?.disconnect();
       socketRef.current = null;
     };
@@ -173,7 +180,9 @@ export function ChatWindow({
   };
 
   return (
-    <div className="flex h-[calc(100vh-13rem)] flex-col">
+    // dvh rather than vh so a mobile URL bar collapsing does not clip the
+    // composer, and extra bottom room on small screens for the fixed nav bar.
+    <div className="flex h-[calc(100dvh-19rem)] flex-col lg:h-[calc(100dvh-13rem)]">
       <div className="flex-1 space-y-5 overflow-y-auto pr-1">
         {session.attachedMediaUrls.length ? (
           <div className="flex flex-wrap gap-2">

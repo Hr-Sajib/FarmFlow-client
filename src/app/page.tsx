@@ -11,11 +11,18 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { ContourField } from "@/components/marketing/ContourField";
 import { LiveReadout } from "@/components/marketing/LiveReadout";
+import { publicFetch } from "@/lib/api";
+import type { PublicReading, PublicStats } from "@/lib/types";
 
 /**
- * Fully server-rendered. The only client code on this page is the live readout
- * in the hero, which has to move to make its point.
+ * Server-rendered and statically cached. The only client code is the live
+ * readout in the hero, which has to move to make its point — and even that is
+ * handed its first value from the server so nothing renders blank.
+ *
+ * `publicFetch` deliberately reads no cookie: touching cookies() would opt this
+ * page into dynamic rendering, and the landing page should be prerendered.
  */
+export const revalidate = 30;
 
 const STEPS = [
   {
@@ -40,7 +47,13 @@ const STEPS = [
   },
 ];
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  // Independent, and the page cannot render until both are known.
+  const [reading, stats] = await Promise.all([
+    publicFetch<PublicReading>("/telemetry/latest"),
+    publicFetch<PublicStats>("/stats"),
+  ]);
+
   return (
     <div className="min-h-screen">
       {/* ---------- header ---------- */}
@@ -97,10 +110,33 @@ export default function LandingPage() {
               </div>
             </div>
 
-            <LiveReadout />
+            <LiveReadout initial={reading} />
           </div>
         </div>
       </section>
+
+      {/* ---------- what the platform is actually doing ---------- */}
+      {stats ? (
+        <section className="mx-auto max-w-6xl px-6 pb-4">
+          <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-card bg-line lg:grid-cols-4">
+            {[
+              { label: "Fields reporting", value: stats.fieldsMonitored },
+              { label: "Readings today", value: stats.readingsLast24h },
+              { label: "Verified experts", value: stats.verifiedExperts },
+              { label: "Questions resolved", value: stats.advisorySessionsResolved },
+            ].map((stat) => (
+              <div key={stat.label} className="bg-surface px-6 py-7">
+                <dt className="text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-ink-faint">
+                  {stat.label}
+                </dt>
+                <dd className="tabular mt-2 font-display text-3xl font-semibold tracking-[-0.02em]">
+                  {stat.value.toLocaleString()}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+      ) : null}
 
       {/* ---------- the problem ---------- */}
       <section className="mx-auto max-w-6xl px-6 py-16">

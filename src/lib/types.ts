@@ -161,3 +161,37 @@ export interface PublicStats {
   advisorySessionsResolved: number;
   verifiedExperts: number;
 }
+
+/** One point in an admin progression chart. */
+export type MonthlyCount = { month: string; count: number; cumulative: number };
+
+export type AdminOverview = {
+  farmers: {
+    total: number;
+    active: number;
+    fieldIntegrated: number;
+    monthly: MonthlyCount[];
+  };
+  experts: {
+    total: number;
+    active: number;
+    designated: number;
+    pendingDesignations: number;
+    approvedDesignations: number;
+    rejectedDesignations: number;
+    monthly: MonthlyCount[];
+  };
+  fields: { total: number; active: number };
+  advisories: {
+    total: number;
+    active: number;
+    aiHandled: number;
+    expertNeeded: number;
+  };
+  forum: {
+    posts: number;
+    contributors: number;
+    comments: number;
+    impressions: number;
+  };
+};

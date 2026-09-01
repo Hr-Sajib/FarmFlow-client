@@ -8,8 +8,9 @@ import { Button } from "@/components/ui/Button";
 import { FieldCard } from "@/components/dashboard/FieldCard";
 import { LiveFieldSync } from "@/components/dashboard/LiveFieldSync";
 import { Unavailable } from "@/components/ui/Unavailable";
+import { AdminOverview } from "@/components/admin/AdminOverview";
 
-export const metadata: Metadata = { title: "Dashboard" };
+export const metadata: Metadata = { title: "Overview" };
 
 const greeting = () => {
   const hour = new Date().getHours();
@@ -27,9 +28,11 @@ export default async function DashboardPage() {
   const user = await serverFetch<User>("/user/me");
   // Left nullable on purpose: null is "the request failed", [] is "this farmer
   // has no fields". Collapsing them would report a dead backend as data loss.
-  const fields = await serverFetch<Field[]>(
-    user?.role === "admin" ? "/field" : "/field/myFields"
-  );
+  if (user?.role === "admin") {
+    return <AdminOverview name={user.fullName} />;
+  }
+
+  const fields = await serverFetch<Field[]>("/field/myFields");
 
   const enriched = await Promise.all(
     (fields ?? []).map(async (field) => {

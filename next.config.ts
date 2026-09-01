@@ -2,6 +2,13 @@ import path from "path";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  /**
+   * A verification build must not write into the directory a running dev
+   * server is reading from — Turbopack shares `.next` between the two, and the
+   * build replaces the dev chunks, which strips the stylesheet off every page
+   * until dev is restarted. `npm run build:check` points somewhere else.
+   */
+  distDir: process.env.NEXT_DIST_DIR ?? ".next",
   // Pin Turbopack's workspace root to this package. Without it, Next can infer
   // the parent directory as the root, which makes CSS resolution of
   // `@import "tailwindcss"` look in /Desktop/FarmFlow/node_modules (nonexistent)

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LoginForm } from "./LoginForm";
+import { DemoLogin } from "./DemoLogin";
 
 export const metadata: Metadata = { title: "Sign in" };
 
@@ -16,6 +17,8 @@ export default function LoginPage() {
       </p>
 
       <LoginForm />
+
+      <DemoLogin />
 
       <p className="mt-8 text-sm text-ink-soft">
         No account yet?{" "}

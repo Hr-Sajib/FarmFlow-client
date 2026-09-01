@@ -27,6 +27,14 @@ async function post<T>(path: string, body: unknown): Promise<T> {
 export const login = (email: string, password: string) =>
   post<{ accessToken: string }>("/auth/login", { email, password });
 
+/**
+ * Signs into a shared demo account. The role is all the browser sends — the
+ * server resolves which account that means, so no demo credential is ever
+ * present in the client bundle.
+ */
+export const demoLogin = (role: "farmer" | "expert" | "admin") =>
+  post<{ accessToken: string }>("/auth/demo-login", { role });
+
 export const registerUser = (payload: Record<string, unknown>) =>
   post("/user/register", payload);
 

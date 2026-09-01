@@ -6,6 +6,7 @@ import { serverFetch } from "@/lib/api";
 import type { AdvisorySession, User } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/advisory/StatusBadge";
+import { Unavailable } from "@/components/ui/Unavailable";
 import { timeAgo } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Advisory" };
@@ -16,7 +17,8 @@ export default async function AdvisoryPage() {
     serverFetch<AdvisorySession[]>("/advisory/my-sessions"),
   ]);
 
-  const list = sessions ?? [];
+  // null means the request failed; [] means there are no sessions yet.
+  const list = sessions;
   const isExpert = user?.role === "expert";
 
   return (
@@ -43,7 +45,9 @@ export default async function AdvisoryPage() {
         ) : null}
       </header>
 
-      {list.length === 0 ? (
+      {list === null ? (
+        <Unavailable what="your conversations" />
+      ) : list.length === 0 ? (
         <div className="rounded-card border border-dashed border-line bg-surface/60 px-8 py-16 text-center">
           <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-tile bg-canopy-tint text-canopy">
             <MessagesSquare className="h-5 w-5" strokeWidth={1.85} />

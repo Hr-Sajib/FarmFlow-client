@@ -7,6 +7,7 @@ import type { Field, Reading, SeriesBucket, User } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import { FieldCard } from "@/components/dashboard/FieldCard";
 import { LiveFieldSync } from "@/components/dashboard/LiveFieldSync";
+import { Unavailable } from "@/components/ui/Unavailable";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
@@ -24,13 +25,14 @@ const greeting = () => {
  */
 export default async function DashboardPage() {
   const user = await serverFetch<User>("/user/me");
-  const fields =
-    (await serverFetch<Field[]>(
-      user?.role === "admin" ? "/field" : "/field/myFields"
-    )) ?? [];
+  // Left nullable on purpose: null is "the request failed", [] is "this farmer
+  // has no fields". Collapsing them would report a dead backend as data loss.
+  const fields = await serverFetch<Field[]>(
+    user?.role === "admin" ? "/field" : "/field/myFields"
+  );
 
   const enriched = await Promise.all(
-    fields.map(async (field) => {
+    (fields ?? []).map(async (field) => {
       const [latest, series] = await Promise.all([
         serverFetch<Reading | null>(`/sensorData/field/${field.fieldId}/latest`),
         serverFetch<SeriesBucket[]>(
@@ -63,7 +65,9 @@ export default async function DashboardPage() {
         </Button>
       </header>
 
-      {enriched.length === 0 ? (
+      {fields === null ? (
+        <Unavailable what="your fields" />
+      ) : enriched.length === 0 ? (
         <div className="rounded-card border border-dashed border-line bg-surface/60 px-8 py-16 text-center">
           <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-tile bg-canopy-tint text-canopy">
             <Sprout className="h-5 w-5" strokeWidth={1.85} />

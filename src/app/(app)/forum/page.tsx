@@ -6,6 +6,7 @@ import type { Post, User } from "@/lib/types";
 import { NewPostForm } from "@/components/forum/NewPostForm";
 import { PostFeed } from "@/components/forum/PostFeed";
 import { TopicFilter } from "@/components/forum/TopicFilter";
+import { Unavailable } from "@/components/ui/Unavailable";
 
 export const metadata: Metadata = { title: "Community" };
 
@@ -22,7 +23,8 @@ export default async function ForumPage({
   ]);
 
   if (!user) return null;
-  const list = posts ?? [];
+  // null means the request failed; [] means nobody has posted under this topic.
+  const list = posts;
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-8 lg:py-10">
@@ -41,7 +43,9 @@ export default async function ForumPage({
         <TopicFilter current={topic ?? ""} />
       </div>
 
-      {list.length === 0 ? (
+      {list === null ? (
+        <Unavailable what="the forum" />
+      ) : list.length === 0 ? (
         <div className="mt-6 rounded-card border border-dashed border-line bg-surface/60 px-8 py-14 text-center">
           <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-tile bg-canopy-tint text-canopy">
             <Users2 className="h-5 w-5" strokeWidth={1.85} />

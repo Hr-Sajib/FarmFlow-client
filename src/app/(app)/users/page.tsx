@@ -6,6 +6,7 @@ import { serverFetch } from "@/lib/api";
 import type { User } from "@/lib/types";
 import { UserRow } from "@/components/admin/UserRow";
 import { RoleFilter } from "@/components/admin/RoleFilter";
+import { Unavailable } from "@/components/ui/Unavailable";
 
 export const metadata: Metadata = { title: "People" };
 
@@ -19,10 +20,10 @@ export default async function UsersPage({
   if (me?.role !== "admin") redirect("/dashboard");
 
   const { role } = await searchParams;
-  const users =
-    (await serverFetch<User[]>(`/user${role ? `?role=${role}` : ""}`)) ?? [];
+  // null means the request failed; [] means no account matches the filter.
+  const users = await serverFetch<User[]>(`/user${role ? `?role=${role}` : ""}`);
 
-  const pendingExperts = users.filter(
+  const pendingExperts = (users ?? []).filter(
     (u) => u.role === "expert" && u.expertStatus === "pending"
   ).length;
 
@@ -32,17 +33,23 @@ export default async function UsersPage({
         <h1 className="font-display text-2xl font-semibold tracking-tight lg:text-3xl">
           People
         </h1>
-        <p className="mt-1 text-sm text-ink-soft">
-          {users.length} account{users.length === 1 ? "" : "s"}
-          {pendingExperts
-            ? ` · ${pendingExperts} expert${pendingExperts === 1 ? "" : "s"} awaiting verification`
-            : ""}
-        </p>
+        {/* No count when the load failed — "0 accounts" would be a claim, not
+            a fact. */}
+        {users ? (
+          <p className="mt-1 text-sm text-ink-soft">
+            {users.length} account{users.length === 1 ? "" : "s"}
+            {pendingExperts
+              ? ` · ${pendingExperts} expert${pendingExperts === 1 ? "" : "s"} awaiting verification`
+              : ""}
+          </p>
+        ) : null}
       </header>
 
       <RoleFilter current={role ?? ""} />
 
-      {users.length === 0 ? (
+      {users === null ? (
+        <Unavailable what="the account list" />
+      ) : users.length === 0 ? (
         <div className="mt-6 rounded-card border border-dashed border-line bg-surface/60 px-8 py-14 text-center">
           <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-tile bg-canopy-tint text-canopy">
             <Users2 className="h-5 w-5" strokeWidth={1.85} />

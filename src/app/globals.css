@@ -77,6 +77,15 @@
     outline-offset: 2px;
     border-radius: 4px;
   }
+
+  /* Canopy is a dark green; against the bark hero or a canopy panel it is
+     effectively invisible, so a keyboard user loses the cursor exactly where
+     the page's main calls to action live. Signal is the only token that reads
+     on those surfaces. */
+  .bg-bark :focus-visible,
+  .bg-canopy :focus-visible {
+    outline-color: var(--color-shoot);
+  }
 }
 
 @layer utilities {

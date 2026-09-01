@@ -27,7 +27,7 @@ const schema = z.object({
   latitude: z.coerce.number().min(-90).max(90),
   longitude: z.coerce.number().min(-180).max(180),
   fieldSizeInAcres: z.coerce.number().nonnegative().optional(),
-  soilType: z.enum(SOIL_TYPES).optional(),
+  soilType: z.union([z.enum(SOIL_TYPES), z.literal("")]).optional(),
   environmentType: z.enum(["greenhouse", "net_house", "open_field"]),
   region: z.string().optional(),
 });
@@ -94,7 +94,13 @@ export function NewFieldForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-5">
+    <form
+      onSubmit={handleSubmit(onSubmit, (invalid) => {
+        const first = Object.values(invalid)[0]?.message;
+        toast.error(first ?? "Check the highlighted fields");
+      })}
+      className="mt-8 space-y-5"
+    >
       <div>
         <Label>Field photo</Label>
         <ImageUpload value={image} onChange={setImage} category="fields" label="Add a photo" />

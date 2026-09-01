@@ -12,7 +12,7 @@ import { FieldTrends } from "@/components/charts/FieldTrends";
 import { WeatherCard } from "@/components/field/WeatherCard";
 import { ActuatorControls } from "@/components/field/ActuatorControls";
 import { FieldInsight } from "@/components/field/FieldInsight";
-import { FieldSettings } from "@/components/field/FieldSettings";
+import { EditFieldDialog } from "@/components/field/EditFieldDialog";
 import { timeAgo } from "@/lib/utils";
 
 export async function generateMetadata({
@@ -80,6 +80,10 @@ export default async function FieldDetailPage({
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-bark via-bark/50 to-transparent" />
 
+        <div className="absolute right-4 top-4">
+          <EditFieldDialog field={field} />
+        </div>
+
         <div className="absolute inset-x-0 bottom-0 flex flex-wrap items-end justify-between gap-4 p-6">
           <div>
             <div className="mb-2 flex items-center gap-2">
@@ -101,6 +105,9 @@ export default async function FieldDetailPage({
             <h1 className="font-display text-3xl font-semibold tracking-tight text-ink-invert">
               {field.fieldName}
             </h1>
+            <p className="tabular mt-1 text-xs text-ink-invert/60">
+              {field.fieldId}
+            </p>
             <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-invert/70">
               <span className="capitalize">{field.fieldCrop}</span>
               {field.fieldSizeInAcres ? <span>· {field.fieldSizeInAcres} acres</span> : null}
@@ -135,7 +142,6 @@ export default async function FieldDetailPage({
             <h3 className="mb-4 text-sm font-semibold">Controls</h3>
             <ActuatorControls field={field} />
           </div>
-          <FieldSettings field={field} />
         </aside>
       </div>
     </div>

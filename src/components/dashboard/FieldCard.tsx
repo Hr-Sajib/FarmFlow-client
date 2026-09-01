@@ -61,6 +61,9 @@ export function FieldCard({
             <p className="truncate text-xs text-ink-invert/70">
               {ENV_LABEL[field.environmentType]} · {field.fieldCrop}
             </p>
+            <p className="tabular truncate text-[0.6875rem] text-ink-invert/55">
+              {field.fieldId}
+            </p>
           </div>
           <ArrowUpRight className="h-5 w-5 shrink-0 text-ink-invert/80 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
         </div>

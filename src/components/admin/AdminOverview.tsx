@@ -43,12 +43,16 @@ export async function AdminOverview({ name }: { name: string }) {
         <StatSection
           title="Farmers"
           image={`${BG}/farmer_symbolic_bg_image.jpeg`}
-          placement="inset-y-0 right-0 w-3/5"
+          // Moved off the right: the chart now covers everything past the
+          // first fifth, so an image placed there would be invisible. The
+          // existing left-heavy scrim already suits this side.
+          placement="inset-y-0 left-0 w-1/2"
           scrim="bg-gradient-to-r from-bark via-bark/85 to-bark/45"
           className="lg:col-span-4"
           chart={
             <GrowthChart data={farmers.monthly} color="#1baf7a" label="Farmers" />
           }
+          split="wide"
         >
           <dl className="flex flex-col gap-4">
             <Stat label="Total" value={farmers.total} />

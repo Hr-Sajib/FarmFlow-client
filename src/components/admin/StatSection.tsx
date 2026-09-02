@@ -3,6 +3,25 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 /**
+ * How the width is split between the figures and the chart.
+ *
+ * Expressed as the chart's left edge rather than its width, so the number in
+ * the class is literally the share the text gets — and both values are literal
+ * strings, because Tailwind scans source text and never sees a class assembled
+ * at runtime.
+ */
+const SPLIT = {
+  half: {
+    panel: "lg:left-[52%] lg:right-3",
+    pad: "lg:pr-[calc(48%+1.5rem)]",
+  },
+  wide: {
+    panel: "lg:left-[20%] lg:right-3",
+    pad: "lg:pr-[calc(80%+0.75rem)]",
+  },
+} as const;
+
+/**
  * A section panel with its subject photographed behind the numbers.
  *
  * The image is deliberately not a full-bleed background: it occupies one region
@@ -18,6 +37,7 @@ export function StatSection({
   scrim,
   className,
   chart,
+  split = "half",
   children,
 }: {
   title: string;
@@ -29,6 +49,8 @@ export function StatSection({
   className?: string;
   /** Rendered in its own panel pinned to the right of the section. */
   chart?: React.ReactNode;
+  /** Share of the width the figures keep: half, or a narrow 20% column. */
+  split?: keyof typeof SPLIT;
   children: React.ReactNode;
 }) {
   return (
@@ -49,8 +71,8 @@ export function StatSection({
       <div
         className={cn(
           "relative p-6 text-ink-invert lg:p-7",
-          // Room for the pinned chart, plus 12px of clearance from it.
-          chart && "lg:pr-[calc(48%+1.5rem)]"
+          // Room for the pinned chart, plus clearance from it.
+          chart && SPLIT[split].pad
         )}
       >
         <h2 className="font-display text-lg font-semibold tracking-tight">
@@ -69,7 +91,8 @@ export function StatSection({
         <div
           className={cn(
             "relative mx-6 mb-6 h-40 rounded-xl bg-surface",
-            "lg:absolute lg:inset-y-3 lg:right-3 lg:mx-0 lg:mb-0 lg:h-auto lg:w-[48%]"
+            "lg:absolute lg:inset-y-3 lg:mx-0 lg:mb-0 lg:h-auto",
+            SPLIT[split].panel
           )}
         >
           <div className="absolute inset-3">{chart}</div>

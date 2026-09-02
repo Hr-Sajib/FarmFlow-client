@@ -14,10 +14,15 @@ const SPLIT = {
   half: {
     panel: "lg:left-[52%] lg:right-3",
     pad: "lg:pr-[calc(48%+1.5rem)]",
+    radius: "rounded-xl",
   },
   wide: {
     panel: "lg:left-[20%] lg:right-3",
     pad: "lg:pr-[calc(80%+0.75rem)]",
+    // A far larger surface than the half split, so it carries the softer
+    // corner. Still under the section's own 24px, which keeps the inner
+    // corner tighter than the one enclosing it.
+    radius: "rounded-tile",
   },
 } as const;
 
@@ -90,7 +95,8 @@ export function StatSection({
       {chart ? (
         <div
           className={cn(
-            "relative mx-6 mb-6 h-40 rounded-xl bg-surface",
+            "relative mx-6 mb-6 h-40 bg-surface",
+            SPLIT[split].radius,
             "lg:absolute lg:inset-y-3 lg:mx-0 lg:mb-0 lg:h-auto",
             SPLIT[split].panel
           )}

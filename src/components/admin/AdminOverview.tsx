@@ -1,6 +1,6 @@
 import { serverFetch } from "@/lib/api";
 import type { AdminOverview as Overview } from "@/lib/types";
-import { StatSection, Stat } from "./StatSection";
+import { StatSection, Stat, ChartPanel } from "./StatSection";
 import { GrowthChart } from "./GrowthChart";
 import { Unavailable } from "@/components/ui/Unavailable";
 
@@ -37,25 +37,30 @@ export async function AdminOverview({ name }: { name: string }) {
         </p>
       </header>
 
-      <div className="grid gap-5 lg:grid-cols-2">
+      {/* Ten columns rather than twelve, so 40/30/30 on the first row and
+          50/50 on the second are exact rather than rounded. */}
+      <div className="grid gap-5 lg:grid-cols-10">
         <StatSection
           title="Farmers"
           description="Who is growing, and who is actually wired up."
           image={`${BG}/farmer_symbolic_bg_image.jpeg`}
           placement="inset-y-0 right-0 w-3/5"
           scrim="bg-gradient-to-r from-bark via-bark/85 to-bark/45"
+          className="lg:col-span-4"
         >
-          <dl className="grid grid-cols-3 gap-4">
-            <Stat label="Total" value={farmers.total} />
-            <Stat label="Active" value={farmers.active} />
-            <Stat
-              label="With fields"
-              value={farmers.fieldIntegrated}
-              hint="own an active field"
-            />
-          </dl>
-          <div className="mt-5">
-            <GrowthChart data={farmers.monthly} color="#1baf7a" label="Farmers" />
+          <div className="flex flex-col gap-5 sm:flex-row">
+            <dl className="flex shrink-0 flex-col gap-4">
+              <Stat label="Total" value={farmers.total} />
+              <Stat label="Active" value={farmers.active} />
+              <Stat
+                label="With fields"
+                value={farmers.fieldIntegrated}
+                hint="own an active field"
+              />
+            </dl>
+            <ChartPanel>
+              <GrowthChart data={farmers.monthly} color="#1baf7a" label="Farmers" />
+            </ChartPanel>
           </div>
         </StatSection>
 
@@ -65,26 +70,29 @@ export async function AdminOverview({ name }: { name: string }) {
           image={`${BG}/expert_symbolic_bg_image.png`}
           placement="inset-y-0 left-0 w-1/2"
           scrim="bg-gradient-to-l from-bark via-bark/85 to-bark/45"
+          className="lg:col-span-3"
         >
-          <dl className="grid grid-cols-3 gap-4">
-            <Stat label="Total" value={experts.total} />
-            <Stat label="Active" value={experts.active} />
-            <Stat
-              label="Designated"
-              value={experts.designated}
-              hint="at least one credential"
-            />
-          </dl>
+          <div className="flex flex-col gap-5 sm:flex-row">
+            <dl className="flex shrink-0 flex-col gap-4">
+              <Stat label="Total" value={experts.total} />
+              <Stat label="Active" value={experts.active} />
+              <Stat
+                label="Designated"
+                value={experts.designated}
+                hint="at least one credential"
+              />
+            </dl>
+            <ChartPanel>
+              <GrowthChart data={experts.monthly} color="#2a78d6" label="Experts" />
+            </ChartPanel>
+          </div>
           {/* Counted per designation — one expert may hold several at
               different points in review. */}
-          <dl className="mt-4 grid grid-cols-3 gap-4 border-t border-white/15 pt-4">
+          <dl className="mt-5 grid grid-cols-3 gap-4 border-t border-white/15 pt-4">
             <Stat label="Pending" value={experts.pendingDesignations} />
             <Stat label="Approved" value={experts.approvedDesignations} />
             <Stat label="Rejected" value={experts.rejectedDesignations} />
           </dl>
-          <div className="mt-5">
-            <GrowthChart data={experts.monthly} color="#2a78d6" label="Experts" />
-          </div>
         </StatSection>
 
         <StatSection
@@ -93,6 +101,7 @@ export async function AdminOverview({ name }: { name: string }) {
           image={`${BG}/field_symbolic_bg_image.png`}
           placement="inset-x-0 bottom-0 h-2/3"
           scrim="bg-gradient-to-b from-bark via-bark/85 to-bark/45"
+          className="lg:col-span-3"
         >
           <dl className="grid grid-cols-2 gap-4">
             <Stat label="Total" value={fields.total} />
@@ -106,6 +115,7 @@ export async function AdminOverview({ name }: { name: string }) {
           image={`${BG}/advisorySession_symbolic_bg.png`}
           placement="inset-y-0 right-0 w-1/2"
           scrim="bg-gradient-to-r from-bark via-bark/85 to-bark/45"
+          className="lg:col-span-5"
         >
           <dl className="grid grid-cols-2 gap-4">
             <Stat label="Sessions" value={advisories.total} />
@@ -129,6 +139,7 @@ export async function AdminOverview({ name }: { name: string }) {
           image={`${BG}/forum_symbolic_bg.png`}
           placement="inset-y-0 right-0 w-3/5"
           scrim="bg-gradient-to-r from-bark via-bark/85 to-bark/45"
+          className="lg:col-span-5"
         >
           <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             <Stat label="Posts" value={forum.posts} />

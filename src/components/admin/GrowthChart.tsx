@@ -13,7 +13,7 @@ import {
 import type { MonthlyCount } from "@/lib/types";
 
 /**
- * Cumulative accounts over twelve months, drawn on the dark section panel.
+ * Cumulative accounts over twelve months, drawn on the white chart panel.
  *
  * Cumulative rather than per-month: the question a total answers is "how big is
  * this now", and a per-month bar of mostly zeros answers a different one. The
@@ -34,7 +34,7 @@ export function GrowthChart({
   };
 
   return (
-    <div className="h-40 w-full">
+    <div className="h-full w-full">
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: -22 }}>
           <defs>
@@ -43,11 +43,11 @@ export function GrowthChart({
               <stop offset="100%" stopColor={color} stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid stroke="rgba(255,255,255,0.18)" vertical={false} />
+          <CartesianGrid stroke="var(--color-line)" vertical={false} />
           <XAxis
             dataKey="month"
             tickFormatter={short}
-            tick={{ fontSize: 10, fill: "rgba(255,255,255,0.78)" }}
+            tick={{ fontSize: 10, fill: "var(--color-ink-faint)" }}
             axisLine={false}
             tickLine={false}
             interval="preserveStartEnd"
@@ -55,18 +55,18 @@ export function GrowthChart({
           />
           <YAxis
             allowDecimals={false}
-            tick={{ fontSize: 10, fill: "rgba(255,255,255,0.78)" }}
+            tick={{ fontSize: 10, fill: "var(--color-ink-faint)" }}
             axisLine={false}
             tickLine={false}
             width={44}
           />
           <Tooltip
             contentStyle={{
-              background: "#1B2A20",
-              border: "1px solid rgba(255,255,255,0.15)",
+              background: "var(--color-surface)",
+              border: "1px solid var(--color-line)",
               borderRadius: 12,
               fontSize: 12,
-              color: "#F2F4EE",
+              color: "var(--color-ink)",
             }}
             labelFormatter={(m) => short(String(m))}
             formatter={(value, _name, item) => [

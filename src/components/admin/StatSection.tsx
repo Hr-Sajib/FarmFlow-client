@@ -17,6 +17,7 @@ export function StatSection({
   image,
   placement,
   scrim,
+  className,
   children,
 }: {
   title: string;
@@ -25,10 +26,12 @@ export function StatSection({
   placement: string;
   /** Gradient direction, matched to where the image sits. */
   scrim: string;
+  /** Column span — the row weights are set by the caller. */
+  className?: string;
   children: React.ReactNode;
 }) {
   return (
-    <section className="relative overflow-hidden rounded-card bg-bark-soft">
+    <section className={cn("relative overflow-hidden rounded-card bg-bark-soft", className)}>
       <div className={cn("absolute", placement)}>
         <Image src={image} alt="" fill sizes="600px" className="object-cover" />
       </div>
@@ -50,6 +53,25 @@ export function StatSection({
         <div className="mt-5">{children}</div>
       </div>
     </section>
+  );
+}
+
+/**
+ * The chart's own surface inside a section.
+ *
+ * Charts sit on white rather than on the photograph: a line has to be read
+ * precisely, and reading it against a blurred image that changes tone across
+ * its own width is guesswork. It sits in the normal flow, so the section's
+ * padding is what holds it off the edges.
+ */
+export function ChartPanel({ children }: { children: React.ReactNode }) {
+  // Recharts' ResponsiveContainer measures its parent, and a chain of
+  // percentage heights gives it nothing to measure — so the panel carries a
+  // definite height and the chart fills it absolutely.
+  return (
+    <div className="relative min-h-[10.5rem] min-w-0 flex-1 rounded-xl bg-surface">
+      <div className="absolute inset-3">{children}</div>
+    </div>
   );
 }
 

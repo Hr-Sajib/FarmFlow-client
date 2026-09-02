@@ -70,7 +70,7 @@ export async function AdminOverview({ name }: { name: string }) {
           image={`${BG}/expert_symbolic_bg_image.png`}
           placement="inset-y-0 left-0 w-1/2"
           scrim="bg-gradient-to-l from-bark via-bark/85 to-bark/45"
-          className="lg:col-span-3"
+          className="lg:col-span-4"
         >
           <div className="flex flex-col gap-5 sm:flex-row">
             <dl className="flex shrink-0 flex-col gap-4">
@@ -101,9 +101,9 @@ export async function AdminOverview({ name }: { name: string }) {
           image={`${BG}/field_symbolic_bg_image.png`}
           placement="inset-x-0 bottom-0 h-2/3"
           scrim="bg-gradient-to-b from-bark via-bark/85 to-bark/45"
-          className="lg:col-span-3"
+          className="lg:col-span-2"
         >
-          <dl className="grid grid-cols-2 gap-4">
+          <dl className="flex flex-col gap-4">
             <Stat label="Total" value={fields.total} />
             <Stat label="Active" value={fields.active} />
           </dl>

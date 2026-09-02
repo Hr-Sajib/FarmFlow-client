@@ -122,13 +122,14 @@ export function StatSection({
             />
           ) : null}
           {/* The wash sits over the image rather than being the panel's own
-              colour, so the two stack in the right order. The slight blur is
-              the same trick the section uses over its photograph: it stops
-              illustration detail competing with the plotted line. */}
+              colour, so the two stack in the right order. The blur is heavy
+              enough to leave the illustration as colour and shape rather than
+              a picture — behind a chart it is a texture, and any detail sharp
+              enough to read competes with the plotted line. */}
           <div
             className={cn(
               "absolute inset-0 bg-white/40",
-              chartImage && "backdrop-blur-[2px]"
+              chartImage && "backdrop-blur-[14px]"
             )}
           />
           <div className="absolute inset-3">{chart}</div>

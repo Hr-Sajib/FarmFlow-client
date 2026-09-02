@@ -1,6 +1,6 @@
 import { serverFetch } from "@/lib/api";
 import type { AdminOverview as Overview } from "@/lib/types";
-import { StatSection, Stat, ChartPanel } from "./StatSection";
+import { StatSection, Stat } from "./StatSection";
 import { GrowthChart } from "./GrowthChart";
 import { Unavailable } from "@/components/ui/Unavailable";
 
@@ -47,21 +47,19 @@ export async function AdminOverview({ name }: { name: string }) {
           placement="inset-y-0 right-0 w-3/5"
           scrim="bg-gradient-to-r from-bark via-bark/85 to-bark/45"
           className="lg:col-span-4"
+          chart={
+            <GrowthChart data={farmers.monthly} color="#1baf7a" label="Farmers" />
+          }
         >
-          <div className="flex flex-col gap-5 sm:flex-row">
-            <dl className="flex shrink-0 flex-col gap-4">
-              <Stat label="Total" value={farmers.total} />
-              <Stat label="Active" value={farmers.active} />
-              <Stat
-                label="With fields"
-                value={farmers.fieldIntegrated}
-                hint="own an active field"
-              />
-            </dl>
-            <ChartPanel>
-              <GrowthChart data={farmers.monthly} color="#1baf7a" label="Farmers" />
-            </ChartPanel>
-          </div>
+          <dl className="flex flex-col gap-4">
+            <Stat label="Total" value={farmers.total} />
+            <Stat label="Active" value={farmers.active} />
+            <Stat
+              label="With fields"
+              value={farmers.fieldIntegrated}
+              hint="own an active field"
+            />
+          </dl>
         </StatSection>
 
         <StatSection
@@ -71,21 +69,19 @@ export async function AdminOverview({ name }: { name: string }) {
           placement="inset-y-0 left-0 w-1/2"
           scrim="bg-gradient-to-l from-bark via-bark/85 to-bark/45"
           className="lg:col-span-4"
+          chart={
+            <GrowthChart data={experts.monthly} color="#2a78d6" label="Experts" />
+          }
         >
-          <div className="flex flex-col gap-5 sm:flex-row">
-            <dl className="flex shrink-0 flex-col gap-4">
-              <Stat label="Total" value={experts.total} />
-              <Stat label="Active" value={experts.active} />
-              <Stat
-                label="Designated"
-                value={experts.designated}
-                hint="at least one credential"
-              />
-            </dl>
-            <ChartPanel>
-              <GrowthChart data={experts.monthly} color="#2a78d6" label="Experts" />
-            </ChartPanel>
-          </div>
+          <dl className="flex flex-col gap-4">
+            <Stat label="Total" value={experts.total} />
+            <Stat label="Active" value={experts.active} />
+            <Stat
+              label="Designated"
+              value={experts.designated}
+              hint="at least one credential"
+            />
+          </dl>
           {/* Counted per designation — one expert may hold several at
               different points in review. */}
           <dl className="mt-5 grid grid-cols-3 gap-4 border-t border-white/15 pt-4">

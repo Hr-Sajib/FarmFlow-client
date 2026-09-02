@@ -18,6 +18,7 @@ export function StatSection({
   placement,
   scrim,
   className,
+  chart,
   children,
 }: {
   title: string;
@@ -28,6 +29,8 @@ export function StatSection({
   scrim: string;
   /** Column span — the row weights are set by the caller. */
   className?: string;
+  /** Rendered in its own panel pinned to the right of the section. */
+  chart?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
@@ -45,33 +48,37 @@ export function StatSection({
       <div className="absolute inset-0 bg-black/30 backdrop-blur-[6px]" />
       <div className={cn("absolute inset-0", scrim)} />
 
-      <div className="relative p-6 text-ink-invert lg:p-7">
+      <div
+        className={cn(
+          "relative p-6 text-ink-invert lg:p-7",
+          // Room for the pinned chart, plus 12px of clearance from it.
+          chart && "lg:pr-[calc(48%+1.5rem)]"
+        )}
+      >
         <h2 className="font-display text-lg font-semibold tracking-tight">
           {title}
         </h2>
         <p className="mt-1 text-sm text-ink-invert/65">{description}</p>
         <div className="mt-5">{children}</div>
       </div>
-    </section>
-  );
-}
 
-/**
- * The chart's own surface inside a section.
- *
- * Charts sit on white rather than on the photograph: a line has to be read
- * precisely, and reading it against a blurred image that changes tone across
- * its own width is guesswork. It sits in the normal flow, so the section's
- * padding is what holds it off the edges.
- */
-export function ChartPanel({ children }: { children: React.ReactNode }) {
-  // Recharts' ResponsiveContainer measures its parent, and a chain of
-  // percentage heights gives it nothing to measure — so the panel carries a
-  // definite height and the chart fills it absolutely.
-  return (
-    <div className="relative min-h-[10.5rem] min-w-0 flex-1 rounded-xl bg-surface">
-      <div className="absolute inset-3">{children}</div>
-    </div>
+      {/* Pinned rather than placed in the flow, so the gap to the section edge
+          is the same slim 12px above, below and to the right — a chart that
+          follows the figures instead inherits the section's much larger text
+          padding on one side and whatever the content happens to leave on the
+          others. Below lg there is no room to sit beside anything, so it
+          returns to the flow underneath. */}
+      {chart ? (
+        <div
+          className={cn(
+            "relative mx-6 mb-6 h-40 rounded-xl bg-surface",
+            "lg:absolute lg:inset-y-3 lg:right-3 lg:mx-0 lg:mb-0 lg:h-auto lg:w-[48%]"
+          )}
+        >
+          <div className="absolute inset-3">{chart}</div>
+        </div>
+      ) : null}
+    </section>
   );
 }
 

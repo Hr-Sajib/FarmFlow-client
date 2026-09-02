@@ -13,7 +13,12 @@ import {
 import type { MonthlyCount } from "@/lib/types";
 
 /**
- * Cumulative accounts over twelve months, drawn on the white chart panel.
+ * Cumulative accounts over twelve months, drawn on the translucent chart panel.
+ *
+ * The panel is 40% white over a dark section, so it resolves to a mid tone
+ * rather than to white — the muted ink these labels used measures 1.2:1
+ * against it and disappears. Full-strength ink is the only step that clears
+ * 4.5:1, so the axis text is darker here than muted axis text usually is.
  *
  * Cumulative rather than per-month: the question a total answers is "how big is
  * this now", and a per-month bar of mostly zeros answers a different one. The
@@ -43,11 +48,11 @@ export function GrowthChart({
               <stop offset="100%" stopColor={color} stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid stroke="var(--color-line)" vertical={false} />
+          <CartesianGrid stroke="rgba(0,0,0,0.14)" vertical={false} />
           <XAxis
             dataKey="month"
             tickFormatter={short}
-            tick={{ fontSize: 10, fill: "var(--color-ink-faint)" }}
+            tick={{ fontSize: 10, fill: "var(--color-ink)" }}
             axisLine={false}
             tickLine={false}
             interval="preserveStartEnd"
@@ -55,7 +60,7 @@ export function GrowthChart({
           />
           <YAxis
             allowDecimals={false}
-            tick={{ fontSize: 10, fill: "var(--color-ink-faint)" }}
+            tick={{ fontSize: 10, fill: "var(--color-ink)" }}
             axisLine={false}
             tickLine={false}
             width={44}

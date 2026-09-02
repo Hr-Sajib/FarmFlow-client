@@ -95,7 +95,7 @@ export function StatSection({
       {chart ? (
         <div
           className={cn(
-            "relative mx-6 mb-6 h-40 bg-surface",
+            "relative mx-6 mb-6 h-40 bg-white/40",
             SPLIT[split].radius,
             "lg:absolute lg:inset-y-3 lg:mx-0 lg:mb-0 lg:h-auto",
             SPLIT[split].panel

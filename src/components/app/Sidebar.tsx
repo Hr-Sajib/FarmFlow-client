@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   LayoutGrid,
   MessagesSquare,
@@ -32,7 +32,6 @@ import { logout } from "@/lib/session";
 const GUTTER_PX = 12; // matches the inset-3 on the panel
 const RAIL = `${(72 + GUTTER_PX * 2) / 16}rem`; // 72px of icons
 const PANEL = `${(252 + GUTTER_PX * 2) / 16}rem`; // 252px of icons and labels
-const PIN_KEY = "farmflow:sidebar-pinned";
 
 /**
  * Row padding is 14px, not 15px, and the odd number is load-bearing. The panel
@@ -88,18 +87,12 @@ export function Sidebar({ user }: { user: User }) {
   const [hovered, setHovered] = useState(false);
   const open = pinned || hovered;
 
-  // Read after mount rather than during render: the server has no localStorage,
-  // and seeding state from it directly would hydrate to a different width.
-  useEffect(() => {
-    setPinned(window.localStorage.getItem(PIN_KEY) === "true");
-  }, []);
-
-  const togglePinned = () => {
-    setPinned((prev) => {
-      window.localStorage.setItem(PIN_KEY, String(!prev));
-      return !prev;
-    });
-  };
+  // Deliberately not persisted. Remembering the pin meant that expanding it
+  // once left it expanded on every later visit, so the rail was wide as often
+  // as it was slim and never settled into one resting state. It now starts
+  // collapsed every time and widens only while it is being used — pointed at,
+  // tabbed into, or held open with the toggle for the rest of the visit.
+  const togglePinned = () => setPinned((prev) => !prev);
 
   const signOut = async () => {
     await logout();

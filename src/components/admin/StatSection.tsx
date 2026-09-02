@@ -40,16 +40,19 @@ export function StatSection({
   image,
   placement,
   scrim,
+  chartImage,
   className,
   chart,
   split = "half",
   children,
 }: {
   title: string;
-  image: string;
-  placement: string;
+  image?: string;
+  placement?: string;
   /** Gradient direction, matched to where the image sits. */
-  scrim: string;
+  scrim?: string;
+  /** Puts the subject behind the chart instead of behind the whole section. */
+  chartImage?: string;
   /** Column span — the row weights are set by the caller. */
   className?: string;
   /** Rendered in its own panel pinned to the right of the section. */
@@ -60,9 +63,11 @@ export function StatSection({
 }) {
   return (
     <section className={cn("relative overflow-hidden rounded-card bg-bark-soft", className)}>
-      <div className={cn("absolute", placement)}>
-        <Image src={image} alt="" fill sizes="600px" className="object-cover" />
-      </div>
+      {image ? (
+        <div className={cn("absolute", placement)}>
+          <Image src={image} alt="" fill sizes="600px" className="object-cover" />
+        </div>
+      ) : null}
 
       {/* Two layers doing different jobs. The wash and blur push the whole
           image back so it reads as a background. The gradient then falls away
@@ -70,8 +75,14 @@ export function StatSection({
           instead of one depending on whether the artwork behind it is light —
           these illustrations have pale backgrounds that white text vanishes
           into otherwise. */}
-      <div className="absolute inset-0 bg-black/30 backdrop-blur-[6px]" />
-      <div className={cn("absolute inset-0", scrim)} />
+      {/* Only meaningful over a photograph; without one they would just darken
+          this section relative to the others. */}
+      {image ? (
+        <>
+          <div className="absolute inset-0 bg-black/30 backdrop-blur-[6px]" />
+          <div className={cn("absolute inset-0", scrim)} />
+        </>
+      ) : null}
 
       <div
         className={cn(
@@ -95,12 +106,31 @@ export function StatSection({
       {chart ? (
         <div
           className={cn(
-            "relative mx-6 mb-6 h-40 bg-white/40",
+            "relative mx-6 mb-6 h-40 overflow-hidden",
             SPLIT[split].radius,
             "lg:absolute lg:inset-y-3 lg:mx-0 lg:mb-0 lg:h-auto",
             SPLIT[split].panel
           )}
         >
+          {chartImage ? (
+            <Image
+              src={chartImage}
+              alt=""
+              fill
+              sizes="600px"
+              className="object-cover"
+            />
+          ) : null}
+          {/* The wash sits over the image rather than being the panel's own
+              colour, so the two stack in the right order. The slight blur is
+              the same trick the section uses over its photograph: it stops
+              illustration detail competing with the plotted line. */}
+          <div
+            className={cn(
+              "absolute inset-0 bg-white/40",
+              chartImage && "backdrop-blur-[2px]"
+            )}
+          />
           <div className="absolute inset-3">{chart}</div>
         </div>
       ) : null}

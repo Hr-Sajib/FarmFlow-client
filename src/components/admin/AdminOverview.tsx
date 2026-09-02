@@ -42,12 +42,10 @@ export async function AdminOverview({ name }: { name: string }) {
       <div className="grid gap-5 lg:grid-cols-10">
         <StatSection
           title="Farmers"
-          image={`${BG}/farmer_symbolic_bg_image.jpeg`}
-          // Moved off the right: the chart now covers everything past the
-          // first fifth, so an image placed there would be invisible. The
-          // existing left-heavy scrim already suits this side.
-          placement="inset-y-0 left-0 w-1/2"
-          scrim="bg-gradient-to-r from-bark via-bark/85 to-bark/45"
+          // The subject sits behind the chart rather than behind the section:
+          // the chart occupies everything past the first fifth, so that is
+          // where there is room for it to be seen.
+          chartImage={`${BG}/farmer_symbolic_bg_image.jpeg`}
           className="lg:col-span-4"
           chart={
             <GrowthChart data={farmers.monthly} color="#1baf7a" label="Farmers" />

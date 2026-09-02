@@ -42,7 +42,6 @@ export async function AdminOverview({ name }: { name: string }) {
       <div className="grid gap-5 lg:grid-cols-10">
         <StatSection
           title="Farmers"
-          description="Who is growing, and who is actually wired up."
           image={`${BG}/farmer_symbolic_bg_image.jpeg`}
           placement="inset-y-0 right-0 w-3/5"
           scrim="bg-gradient-to-r from-bark via-bark/85 to-bark/45"
@@ -64,7 +63,6 @@ export async function AdminOverview({ name }: { name: string }) {
 
         <StatSection
           title="Experts"
-          description="Agronomists and the state of their credentials."
           image={`${BG}/expert_symbolic_bg_image.png`}
           placement="inset-y-0 left-0 w-1/2"
           scrim="bg-gradient-to-l from-bark via-bark/85 to-bark/45"
@@ -93,7 +91,6 @@ export async function AdminOverview({ name }: { name: string }) {
 
         <StatSection
           title="Fields"
-          description="Registered plots and how many are reporting."
           image={`${BG}/field_symbolic_bg_image.png`}
           placement="inset-x-0 bottom-0 h-2/3"
           scrim="bg-gradient-to-b from-bark via-bark/85 to-bark/45"
@@ -107,7 +104,6 @@ export async function AdminOverview({ name }: { name: string }) {
 
         <StatSection
           title="Advisories"
-          description="What the AI answered, and what needed a person."
           image={`${BG}/advisorySession_symbolic_bg.png`}
           placement="inset-y-0 right-0 w-1/2"
           scrim="bg-gradient-to-r from-bark via-bark/85 to-bark/45"
@@ -131,7 +127,6 @@ export async function AdminOverview({ name }: { name: string }) {
 
         <StatSection
           title="Forum"
-          description="What the community is asking and answering."
           image={`${BG}/forum_symbolic_bg.png`}
           placement="inset-y-0 right-0 w-3/5"
           scrim="bg-gradient-to-r from-bark via-bark/85 to-bark/45"

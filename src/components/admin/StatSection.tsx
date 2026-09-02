@@ -13,7 +13,6 @@ import { cn } from "@/lib/utils";
  */
 export function StatSection({
   title,
-  description,
   image,
   placement,
   scrim,
@@ -22,7 +21,6 @@ export function StatSection({
   children,
 }: {
   title: string;
-  description: string;
   image: string;
   placement: string;
   /** Gradient direction, matched to where the image sits. */
@@ -58,7 +56,6 @@ export function StatSection({
         <h2 className="font-display text-lg font-semibold tracking-tight">
           {title}
         </h2>
-        <p className="mt-1 text-sm text-ink-invert/65">{description}</p>
         <div className="mt-5">{children}</div>
       </div>
 

@@ -1,34 +1,40 @@
-# Use official Node.js LTS image
-FROM node:20-alpine AS builder
+# syntax=docker/dockerfile:1
 
-# Set working directory
+FROM node:20-alpine AS deps
 WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
 
-# Copy package.json and package-lock.json
-COPY package*.json ./
-
-# Install dependencies
-RUN npm install --legacy-peer-deps
-
-# Copy project files
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Build Next.js project
+# Baked into the bundle at build time, not read at runtime: NEXT_PUBLIC_* is
+# substituted during the build, so the deployed API URL has to be known here.
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_TELEMETRY_DISABLED=1
+
 RUN npm run build
 
-# Production image
 FROM node:20-alpine AS runner
-
 WORKDIR /app
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3002
+ENV HOSTNAME=0.0.0.0
 
-# Copy only necessary files from builder
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/.next ./.next
+RUN addgroup --system --gid 1001 nodejs \
+ && adduser --system --uid 1001 nextjs
+
+# The standalone output carries its own minimal node_modules; static assets and
+# public files are not included in it and are copied alongside.
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Expose port
-EXPOSE 3100
+USER nextjs
+EXPOSE 3002
 
-# Start Next.js in production
-CMD ["npm", "start"]
+CMD ["node", "server.js"]

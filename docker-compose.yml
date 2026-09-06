@@ -1,0 +1,26 @@
+services:
+  farmflow-client:
+    container_name: farmflow-client
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: https://farmflow-api.sajibofficial.me
+    restart: unless-stopped
+    networks:
+      - sajib-net
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--spider", "http://127.0.0.1:3002"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  sajib-net:
+    external: true

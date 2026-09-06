@@ -2,29 +2,6 @@ import path from "path";
 import type { NextConfig } from "next";
 
 /**
- * The API's hostname, taken from the same variable the browser uses.
- *
- * next/image refuses any remote host not named in remotePatterns, and uploads
- * are served through the API — so in production every field photo, avatar and
- * post image would be rejected unless the deployed API host is listed here.
- * Deriving it from the URL keeps the two from drifting apart.
- */
-const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5002";
-const apiHost = (() => {
-  try {
-    const { protocol, hostname, port } = new URL(apiUrl);
-    return {
-      protocol: protocol.replace(":", "") as "http" | "https",
-      hostname,
-      ...(port ? { port } : {}),
-      pathname: "/upload/file/**",
-    };
-  } catch {
-    return null;
-  }
-})();
-
-/**
  * The one bucket uploads live in. Named exactly rather than by wildcard, so a
  * bucket someone else owns cannot be routed through the optimizer.
  */
@@ -55,25 +32,12 @@ const nextConfig: NextConfig = {
   },
   images: {
     /**
-     * Next refuses to optimise images that resolve to a loopback address — an
-     * SSRF guard. In development the API is on localhost, so the guard is
-     * relaxed there only; production serves uploads from a real host and keeps
-     * the protection.
-     */
-    dangerouslyAllowLocalIP: process.env.NODE_ENV === "development",
-    /**
      * Deliberately narrow. `/_next/image` is a public endpoint, so every host
      * listed here is a host any visitor can make this server fetch, decode and
-     * cache on their behalf. The previous list allowed `i.postimg.cc/**` (a
-     * public upload host) and `*.s3.*.amazonaws.com/**` (every S3 bucket in
-     * existence, including one an attacker creates) — which turned the image
-     * optimizer into an open proxy and supplied the attacker-controlled input
-     * that image-decoder CVEs need. Nothing in src/ referenced either.
+     * cache on their behalf. Only the app's own S3 bucket is allowed; uploads
+     * are served from it directly with public-read ACLs.
      */
     remotePatterns: [
-      // Uploads are served through the API, which redirects to a short-lived
-      // signed URL; the bucket itself stays private.
-      ...(apiHost ? [apiHost] : []),
       {
         protocol: "https" as const,
         hostname: s3Host,

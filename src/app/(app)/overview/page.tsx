@@ -1,24 +1,23 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 
 import { serverFetch } from "@/lib/api";
 import type { User } from "@/lib/types";
 import { AdminOverview } from "@/components/admin/AdminOverview";
 import { ExpertOverview } from "@/components/expert/ExpertOverview";
+import { FarmerOverview } from "@/components/farmer/FarmerOverview";
 
 export const metadata: Metadata = { title: "Overview" };
 
 /**
- * The platform's own summary, which only makes sense for someone who does not
- * own fields. A farmer's overview *is* their fields, so they are sent to the
- * page that shows them rather than given a second, emptier version of it.
+ * The landing page after sign-in for every role. What counts as "an
+ * overview" differs by role — platform-wide for an admin, caseload for an
+ * expert, a farmer's own fields and their trend for a farmer — so each gets
+ * its own component rather than one view filtered three ways.
  */
 export default async function OverviewPage() {
   const user = await serverFetch<User>("/user/me");
 
   if (user?.role === "admin") return <AdminOverview />;
   if (user?.role === "expert") return <ExpertOverview />;
-
-  // A farmer's overview is their fields.
-  redirect("/fields");
+  return <FarmerOverview />;
 }

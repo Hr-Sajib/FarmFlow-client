@@ -1,12 +1,12 @@
 "use client";
 
 import { useRef, useState } from "react";
-import Image from "next/image";
 import { ImagePlus, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { uploadFiles } from "@/lib/session";
 import { cn } from "@/lib/utils";
+import { SafeImage } from "./SafeImage";
 
 export function ImageUpload({
   value,
@@ -42,7 +42,7 @@ export function ImageUpload({
   if (value) {
     return (
       <div className={cn("relative overflow-hidden rounded-tile", className)}>
-        <Image src={value} alt="" width={640} height={240} className="h-40 w-full object-cover" />
+        <SafeImage src={value} alt="" width={640} height={240} className="h-40 w-full object-cover" />
         <button
           type="button"
           onClick={() => onChange(null)}

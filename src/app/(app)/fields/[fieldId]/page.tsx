@@ -1,15 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Droplets, MapPin, Sprout, Sun, Thermometer } from "lucide-react";
 
 import { serverFetch } from "@/lib/api";
 import type { Field, Reading, SeriesBucket, Weather } from "@/lib/types";
 import { Badge } from "@/components/ui/Badge";
-import { MetricTile } from "@/components/dashboard/MetricTile";
+import { SafeImage } from "@/components/ui/SafeImage";
+import { ReadingTile } from "@/components/field/ReadingTile";
 import { FieldTrends } from "@/components/charts/FieldTrends";
+import { SERIES } from "@/components/charts/seriesTheme";
 import { WeatherCard } from "@/components/field/WeatherCard";
+import { SoilProfileCard } from "@/components/field/SoilProfileCard";
 import { ActuatorControls } from "@/components/field/ActuatorControls";
 import { FieldInsight } from "@/components/field/FieldInsight";
 import { EditFieldDialog } from "@/components/field/EditFieldDialog";
@@ -67,7 +69,7 @@ export default async function FieldDetailPage({
       {/* header */}
       <div className="relative mb-6 overflow-hidden rounded-card bg-bark">
         {field.fieldImage ? (
-          <Image
+          <SafeImage
             src={field.fieldImage}
             alt=""
             width={1400}
@@ -129,24 +131,82 @@ export default async function FieldDetailPage({
       <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
         <div className="space-y-6">
           {/* current readings */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <MetricTile icon={Thermometer} label="Temperature" value={latest?.temperature} unit="°C" />
-            <MetricTile icon={Droplets} label="Humidity" value={latest?.humidity} unit="%" />
-            <MetricTile icon={Sprout} label="Soil moisture" value={latest?.soilMoisture} unit="%" />
-            <MetricTile icon={Sun} label="Light" value={latest?.lightIntensity} unit="lux" />
+          <div className="rounded-card bg-surface p-6 card-shadow">
+            <div className="mb-5 flex items-center justify-between gap-3">
+              <h3 className="font-display text-base font-semibold tracking-tight">
+                Live readings
+              </h3>
+              {fresh ? (
+                <Badge tone="signal" className="gap-1.5">
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="live-dot absolute inline-flex h-full w-full rounded-full bg-ink/70" />
+                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-ink/70" />
+                  </span>
+                  Live
+                </Badge>
+              ) : (
+                <Badge tone="neutral">
+                  {latest ? (
+                    <TimeAgo value={latest.ts} prefix="Updated " />
+                  ) : (
+                    "No readings yet"
+                  )}
+                </Badge>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <ReadingTile
+                icon={Thermometer}
+                label="Temperature"
+                value={latest?.temperature}
+                unit="°C"
+                color={SERIES.temperature.color}
+                decimals={SERIES.temperature.decimals}
+              />
+              <ReadingTile
+                icon={Droplets}
+                label="Humidity"
+                value={latest?.humidity}
+                unit="%"
+                color={SERIES.humidity.color}
+                decimals={SERIES.humidity.decimals}
+              />
+              <ReadingTile
+                icon={Sprout}
+                label="Soil moisture"
+                value={latest?.soilMoisture}
+                unit="%"
+                color={SERIES.soilMoisture.color}
+                decimals={SERIES.soilMoisture.decimals}
+              />
+              <ReadingTile
+                icon={Sun}
+                label="Light"
+                value={latest?.lightIntensity}
+                unit="lux"
+                color={SERIES.lightIntensity.color}
+                decimals={SERIES.lightIntensity.decimals}
+              />
+            </div>
+          </div>
+
+          {/* Controls, weather and soil sit with the field's own data, not in
+              the sidebar — the sidebar is for the advisor's suggestion, not
+              for the facts it was given. */}
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="rounded-card bg-surface p-5 card-shadow">
+              <h3 className="mb-4 text-sm font-semibold">Controls</h3>
+              <ActuatorControls field={field} />
+            </div>
+            {weather ? <WeatherCard weather={weather} /> : null}
+            <SoilProfileCard soilProfile={field.soilProfile} />
           </div>
 
           <FieldTrends fieldId={fieldId} initial={series ?? []} />
         </div>
 
-        {/* Ordered by how directly each one acts on the field: controls change
-            it, weather is about to, advice is a suggestion. */}
-        <aside className="space-y-4">
-          <div className="rounded-card bg-surface p-5 card-shadow">
-            <h3 className="mb-4 text-sm font-semibold">Controls</h3>
-            <ActuatorControls field={field} />
-          </div>
-          {weather ? <WeatherCard weather={weather} /> : null}
+        <aside>
           <FieldInsight fieldId={fieldId} />
         </aside>
       </div>

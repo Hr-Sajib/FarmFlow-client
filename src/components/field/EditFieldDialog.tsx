@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Pencil, Trash2, X } from "lucide-react";
+import { Loader2, LocateFixed, Pencil, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { apiCall } from "@/lib/session";
@@ -43,6 +43,8 @@ export function EditFieldDialog({ field }: { field: Field }) {
   const [form, setForm] = useState({
     fieldName: field.fieldName,
     fieldCrop: field.fieldCrop,
+    latitude: field.fieldLocation.latitude.toString(),
+    longitude: field.fieldLocation.longitude.toString(),
     fieldSizeInAcres: field.fieldSizeInAcres?.toString() ?? "",
     soilType: field.soilType ?? "",
     environmentType: field.environmentType,
@@ -52,6 +54,22 @@ export function EditFieldDialog({ field }: { field: Field }) {
 
   const set = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) =>
     setForm((prev) => ({ ...prev, [key]: value }));
+
+  /** Coordinates are fiddly to type; offer the device's own if permitted. */
+  const useMyLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error("This browser can't share a location");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        set("latitude", pos.coords.latitude.toFixed(6));
+        set("longitude", pos.coords.longitude.toFixed(6));
+        toast.success("Location filled in");
+      },
+      () => toast.error("Couldn't read your location. Enter it manually.")
+    );
+  };
 
   const save = async () => {
     const name = form.fieldName.trim();
@@ -84,6 +102,28 @@ export function EditFieldDialog({ field }: { field: Field }) {
         return;
       }
       if (size) payload.fieldSizeInAcres = parsed;
+    }
+
+    const latitude = Number(form.latitude);
+    const longitude = Number(form.longitude);
+    if (
+      latitude !== field.fieldLocation.latitude ||
+      longitude !== field.fieldLocation.longitude
+    ) {
+      if (
+        Number.isNaN(latitude) ||
+        latitude < -90 ||
+        latitude > 90 ||
+        Number.isNaN(longitude) ||
+        longitude < -180 ||
+        longitude > 180
+      ) {
+        toast.error("Enter both coordinates as valid decimals");
+        return;
+      }
+      // Moving the point re-fetches the soil profile server-side, so the
+      // detail page's soil card reflects wherever the field actually is now.
+      payload.fieldLocation = { latitude, longitude };
     }
 
     if (Object.keys(payload).length === 0) {
@@ -192,6 +232,36 @@ export function EditFieldDialog({ field }: { field: Field }) {
                 placeholder="Optional"
                 value={form.fieldSizeInAcres}
                 onChange={(e) => set("fieldSizeInAcres", e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div>
+            <div className="mb-1.5 flex items-baseline justify-between">
+              <span className="text-xs font-medium text-ink-soft">Location</span>
+              <button
+                type="button"
+                onClick={useMyLocation}
+                className="inline-flex items-center gap-1 text-xs text-canopy hover:underline"
+              >
+                <LocateFixed className="h-3.5 w-3.5" />
+                Use my location
+              </button>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Input
+                type="number"
+                step="any"
+                placeholder="Latitude · 23.8103"
+                value={form.latitude}
+                onChange={(e) => set("latitude", e.target.value)}
+              />
+              <Input
+                type="number"
+                step="any"
+                placeholder="Longitude · 90.4125"
+                value={form.longitude}
+                onChange={(e) => set("longitude", e.target.value)}
               />
             </div>
           </div>

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { ThumbsDown, ThumbsUp, MessageSquare, BadgeCheck, Send, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -9,6 +8,7 @@ import { toast } from "sonner";
 import { apiCall } from "@/lib/session";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/Badge";
+import { SafeImage } from "@/components/ui/SafeImage";
 import { FieldSnapshotCard } from "@/components/snapshot/FieldSnapshotCard";
 import type { Post, User } from "@/lib/types";
 import { TimeAgo } from "@/components/ui/TimeAgo";
@@ -121,7 +121,7 @@ export function PostCard({
           className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-canopy-tint text-xs font-semibold text-canopy"
         >
           {author?.photo ? (
-            <Image src={author.photo} alt="" width={40} height={40} className="h-full w-full object-cover" />
+            <SafeImage src={author.photo} alt="" width={40} height={40} className="h-full w-full object-cover" />
           ) : (
             (author?.fullName ?? "?").slice(0, 2).toUpperCase()
           )}
@@ -187,7 +187,7 @@ export function PostCard({
 
       {post.postImage ? (
         <div className="mt-3.5 overflow-hidden rounded-tile">
-          <Image src={post.postImage} alt="" width={800} height={400} className="max-h-80 w-full object-cover" />
+          <SafeImage src={post.postImage} alt="" width={800} height={400} className="max-h-80 w-full object-cover" />
         </div>
       ) : null}
 

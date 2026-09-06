@@ -1,6 +1,5 @@
-import Image from "next/image";
-
 import { cn } from "@/lib/utils";
+import { SafeImage } from "./SafeImage";
 
 /**
  * One avatar for the whole app, so a photo uploaded on the profile shows up
@@ -29,7 +28,7 @@ export function Avatar({
       )}
     >
       {photo ? (
-        <Image
+        <SafeImage
           src={photo}
           alt=""
           fill

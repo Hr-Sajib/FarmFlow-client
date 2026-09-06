@@ -45,7 +45,7 @@ export function DemoLogin() {
       await demoLogin(role);
       // Refresh so server components re-render with the new session cookie.
       router.refresh();
-      router.push("/fields");
+      router.push("/overview");
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Could not open the demo account"

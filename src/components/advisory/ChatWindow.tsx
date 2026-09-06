@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { io, type Socket } from "socket.io-client";
 import {
   Loader2,
@@ -23,6 +22,7 @@ import type {
   User,
 } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
+import { SafeImage } from "@/components/ui/SafeImage";
 import { uploadFiles } from "@/lib/session";
 import { FieldSnapshotCard } from "@/components/snapshot/FieldSnapshotCard";
 import { AttachFieldSnapshot } from "@/components/snapshot/AttachFieldSnapshot";
@@ -60,7 +60,7 @@ function Bubble({ message, isMine }: { message: AdvisoryMessage; isMine: boolean
     return (
       <div className={cn("flex", isMine && "justify-end")}>
         <div className="overflow-hidden rounded-card">
-          <Image src={message.messageContent} alt="" width={280} height={200} className="object-cover" />
+          <SafeImage src={message.messageContent} alt="" width={280} height={200} className="object-cover" />
         </div>
       </div>
     );
@@ -256,7 +256,7 @@ export function ChatWindow({
           <div className="flex flex-wrap gap-2">
             {session.attachedMediaUrls.map((url) => (
               <div key={url} className="h-28 w-28 overflow-hidden rounded-tile">
-                <Image src={url} alt="" width={112} height={112} className="h-full w-full object-cover" />
+                <SafeImage src={url} alt="" width={112} height={112} className="h-full w-full object-cover" />
               </div>
             ))}
           </div>

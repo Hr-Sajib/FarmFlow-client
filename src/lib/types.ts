@@ -34,6 +34,16 @@ export type Field = {
   fieldLocation: { latitude: number; longitude: number };
   fieldSizeInAcres?: number;
   soilType?: string;
+  /** Composition at this field's coordinates, from ISRIC SoilGrids. Absent
+   * where the grid has no coverage, not zeroed. */
+  soilProfile?: {
+    clay: number;
+    silt: number;
+    sand: number;
+    ph: number;
+    organicCarbon: number;
+    fetchedAt: string;
+  } | null;
   environmentType: EnvironmentType;
   farmerId: string;
   region?: string;
@@ -281,6 +291,26 @@ export type PublicProfile = {
   isSelf: boolean;
   follow: { followers: number; following: number; isFollowing: boolean };
   posts: Post[];
+};
+
+export type FarmerFieldSummary = {
+  fieldId: string;
+  fieldName: string;
+  environmentType: EnvironmentType;
+  isReporting: boolean;
+  ts: string | null;
+  temperature: number | null;
+  humidity: number | null;
+  soilMoisture: number | null;
+  lightIntensity: number | null;
+};
+
+export type FarmerOverview = {
+  fields: { total: number; active: number; reporting: number };
+  advisories: { total: number; active: number; resolved: number };
+  community: { posts: number; comments: number; followers: number; following: number };
+  latestByField: FarmerFieldSummary[];
+  trend: SeriesBucket[];
 };
 
 export type ExpertOverview = {

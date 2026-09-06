@@ -1,9 +1,9 @@
 import Link from "next/link";
-import Image from "next/image";
 import { Droplets, Sun, Thermometer, Sprout, ArrowUpRight } from "lucide-react";
 
 import type { Field, Reading, SeriesBucket } from "@/lib/types";
 import { Badge } from "@/components/ui/Badge";
+import { SafeImage } from "@/components/ui/SafeImage";
 import { MetricTile } from "./MetricTile";
 import { Sparkline } from "./Sparkline";
 import { TimeAgo } from "@/components/ui/TimeAgo";
@@ -43,7 +43,7 @@ export function FieldCard({
       {/* photo header, as in the reference dashboards */}
       <div className="relative h-36 overflow-hidden bg-surface-sunk">
         {field.fieldImage ? (
-          <Image
+          <SafeImage
             src={field.fieldImage}
             alt=""
             fill
@@ -51,22 +51,7 @@ export function FieldCard({
             className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : null}
-        <div className="absolute inset-0 bg-gradient-to-t from-bark/75 via-bark/10 to-transparent" />
-
-        <div className="absolute inset-x-4 bottom-3 flex items-end justify-between gap-3">
-          <div className="min-w-0">
-            <p className="truncate font-display text-lg font-semibold text-ink-invert">
-              {field.fieldName}
-            </p>
-            <p className="truncate text-xs text-ink-invert/70">
-              {ENV_LABEL[field.environmentType]} · {field.fieldCrop}
-            </p>
-            <p className="tabular truncate text-[0.6875rem] text-ink-invert/55">
-              {field.fieldId}
-            </p>
-          </div>
-          <ArrowUpRight className="h-5 w-5 shrink-0 text-ink-invert/80 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-        </div>
+        <div className="absolute inset-0 bg-gradient-to-t from-bark/30 via-transparent to-transparent" />
 
         <div className="absolute right-3 top-3">
           {isLive ? (
@@ -86,6 +71,23 @@ export function FieldCard({
       </div>
 
       <div className="p-4">
+        {/* basic info lives below the photo, not over it — legible regardless
+            of how bright or busy the field image is */}
+        <div className="mb-3 flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="truncate font-display text-lg font-semibold text-ink">
+              {field.fieldName}
+            </p>
+            <p className="truncate text-xs text-ink-faint">
+              {ENV_LABEL[field.environmentType]} · {field.fieldCrop}
+            </p>
+            <p className="tabular truncate text-[0.6875rem] text-ink-faint/70">
+              {field.fieldId}
+            </p>
+          </div>
+          <ArrowUpRight className="h-5 w-5 shrink-0 text-ink-faint transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+        </div>
+
         <div className="grid grid-cols-2 gap-2">
           <MetricTile icon={Thermometer} label="Temp" value={latest?.temperature} unit="°C" />
           <MetricTile icon={Droplets} label="Humidity" value={latest?.humidity} unit="%" />

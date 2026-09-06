@@ -50,8 +50,9 @@ type NavGroup = { heading: string; items: NavItem[] };
  * rather than a field grid they do not own.
  */
 function navFor(role: User["role"]): NavGroup[] {
-  // The first entry is wherever the role's work starts. A farmer's is their
-  // fields; an expert owns none, so theirs is their own record.
+  // Every role lands on its own overview first. An admin's and a farmer's
+  // also own a field grid beneath it; an expert owns no fields, so theirs
+  // stops at the one entry.
   const home: NavItem[] =
     role === "admin"
       ? [
@@ -60,7 +61,10 @@ function navFor(role: User["role"]): NavGroup[] {
         ]
       : role === "expert"
         ? [{ href: "/overview", label: "Overview", icon: LayoutGrid }]
-        : [{ href: "/fields", label: "Fields", icon: Sprout }];
+        : [
+            { href: "/overview", label: "Overview", icon: LayoutGrid },
+            { href: "/fields", label: "Fields", icon: Sprout },
+          ];
 
   const workspace: NavItem[] = [
     ...home,
@@ -152,9 +156,8 @@ export function Sidebar({ user }: { user: User }) {
             hovering cannot be reached by keyboard either. */}
         <div className="flex items-center px-3">
           <Link
-            // Straight to the page this role actually starts on, rather than
-            // through the redirect.
-            href={user.role === "farmer" ? "/fields" : "/overview"}
+            // Every role starts here now.
+            href="/overview"
             aria-label="FarmFlow home"
             className={cn(
               "flex min-w-0 items-center gap-3 overflow-hidden rounded-tile py-2 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",

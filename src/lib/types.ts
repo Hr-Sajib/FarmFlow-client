@@ -105,7 +105,7 @@ export type AdvisoryStatus =
 export type AdvisoryMessage = {
   senderRole: "farmer" | "expert" | "ai";
   senderId?: string;
-  messageType: "text" | "image" | "video";
+  messageType: "text" | "image" | "video" | "snapshot";
   messageContent: string;
   sentAt: string;
 };
@@ -127,7 +127,14 @@ export type AdvisorySession = {
 
 export type Post = {
   _id: string;
-  creatorId: { _id: string; fullName: string; photo?: string; role: UserRole };
+  creatorId: {
+    _id: string;
+    fullName: string;
+    photo?: string;
+    role: UserRole;
+    // Profiles are addressed by userCode, not by _id.
+    userCode?: string;
+  };
   creatorRole: UserRole;
   postText: string;
   postImage?: string;
@@ -136,12 +143,22 @@ export type Post = {
   reactions: { likes: string[]; dislikes: string[] };
   comments: Array<{
     _id: string;
-    commenterId: { _id: string; fullName: string; photo?: string; role: UserRole };
+    commenterId: {
+      _id: string;
+      fullName: string;
+      photo?: string;
+      role: UserRole;
+      userCode?: string;
+    };
     commenterRole: UserRole;
     commentText: string;
     createdAt: string;
   }>;
   isResolved: boolean;
+  /** undefined while in review, true published, false held back. */
+  isPassedByAI?: boolean;
+  reviewNote?: string;
+  fieldSnapshot?: FieldSnapshot;
   createdAt: string;
 };
 
@@ -193,5 +210,92 @@ export type AdminOverview = {
     contributors: number;
     comments: number;
     impressions: number;
+  };
+};
+
+/** A field captured at one instant, attached to a conversation or a post. */
+export type FieldSnapshot = {
+  capturedAt: string;
+  field: {
+    fieldId: string;
+    fieldName: string;
+    fieldCrop: string;
+    environmentType: EnvironmentType;
+    soilType?: string;
+    fieldSizeInAcres?: number;
+    region?: string;
+    location: { latitude: number; longitude: number };
+  };
+  reading: {
+    ts: string;
+    temperature?: number;
+    humidity?: number;
+    soilMoisture?: number;
+    lightIntensity?: number;
+  } | null;
+  soil: Record<string, number | null> | null;
+  weather: {
+    current: {
+      time: string;
+      temperature: number;
+      humidity: number;
+      precipitation: number;
+      windSpeed: number;
+      description: string;
+    };
+    units: { temperature: string; windSpeed: string; precipitation: string };
+    timezone: string;
+    daily: Array<{
+      date: string;
+      temperatureMax: number;
+      temperatureMin: number;
+      precipitationSum: number;
+      precipitationProbabilityMax: number;
+      description: string;
+    }>;
+  } | null;
+};
+
+/** One page of the forum feed. */
+export type PostPage = {
+  posts: Post[];
+  hasMore: boolean;
+  nextCursor: string | null;
+};
+
+export type PublicProfile = {
+  person: {
+    userCode: string;
+    fullName: string;
+    role: UserRole;
+    photo?: string;
+    address?: string;
+    expertStatus?: "pending" | "verified" | "rejected";
+    designations?: Array<{
+      designationTitle: string;
+      designatedFrom: string;
+      isApproved?: boolean;
+    }>;
+    joinedAt?: string;
+  };
+  isSelf: boolean;
+  follow: { followers: number; following: number; isFollowing: boolean };
+  posts: Post[];
+};
+
+export type ExpertOverview = {
+  advisories: {
+    requested: number;
+    resolved: number;
+    active: number;
+    farmersHelped: number;
+  };
+  community: { posts: number; comments: number; followers: number };
+  reviews: { count: number; averageStars: number | null };
+  designations: {
+    total: number;
+    verified: number;
+    pending: number;
+    rejected: number;
   };
 };

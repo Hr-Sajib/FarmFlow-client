@@ -50,19 +50,23 @@ type NavGroup = { heading: string; items: NavItem[] };
  * rather than a field grid they do not own.
  */
 function navFor(role: User["role"]): NavGroup[] {
-  const workspace: NavItem[] =
+  // The first entry is wherever the role's work starts. A farmer's is their
+  // fields; an expert owns none, so theirs is their own record.
+  const home: NavItem[] =
     role === "admin"
       ? [
           { href: "/overview", label: "Overview", icon: LayoutGrid },
           { href: "/fields", label: "All fields", icon: Sprout },
-          { href: "/advisory", label: "Advisory", icon: MessagesSquare },
-          { href: "/forum", label: "Community", icon: Users2 },
         ]
-      : [
-          { href: "/overview", label: "Overview", icon: LayoutGrid },
-          { href: "/advisory", label: "Advisory", icon: MessagesSquare },
-          { href: "/forum", label: "Community", icon: Users2 },
-        ];
+      : role === "expert"
+        ? [{ href: "/overview", label: "Overview", icon: LayoutGrid }]
+        : [{ href: "/fields", label: "Fields", icon: Sprout }];
+
+  const workspace: NavItem[] = [
+    ...home,
+    { href: "/advisory", label: "Advisory", icon: MessagesSquare },
+    { href: "/forum", label: "Community", icon: Users2 },
+  ];
 
   const account: NavItem[] =
     role === "admin"
@@ -148,7 +152,9 @@ export function Sidebar({ user }: { user: User }) {
             hovering cannot be reached by keyboard either. */}
         <div className="flex items-center px-3">
           <Link
-            href="/overview"
+            // Straight to the page this role actually starts on, rather than
+            // through the redirect.
+            href={user.role === "farmer" ? "/fields" : "/overview"}
             aria-label="FarmFlow home"
             className={cn(
               "flex min-w-0 items-center gap-3 overflow-hidden rounded-tile py-2 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",

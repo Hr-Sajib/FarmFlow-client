@@ -122,7 +122,7 @@ export function RegisterFlow({ initialRole }: { initialRole: Role | null }) {
       await login(values.email, values.password);
       toast.success("Account created");
       router.refresh();
-      router.push(role === "expert" ? "/profile?verify=1" : "/overview");
+      router.push(role === "expert" ? "/profile?verify=1" : "/fields");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Could not create account");
       setSubmitting(false);

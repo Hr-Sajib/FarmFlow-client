@@ -1,35 +1,68 @@
 "use client";
 
-import Link from "next/link";
 import { cn } from "@/lib/utils";
 
-const TOPICS = ["rice", "potato", "onion", "tomato", "disease", "pest", "irrigation", "greenhouse"];
+const TOPICS = [
+  "rice", "potato", "onion", "tomato", "vegetables",
+  "disease", "pest", "weed",
+  "irrigation", "fertilizer", "soil",
+  "greenhouse", "weather", "harvest", "market",
+];
 
-/** Filter lives in the URL, so a topic view can be shared or bookmarked. */
-export function TopicFilter({ current }: { current: string }) {
+/**
+ * Tags are multi-select and drive the query rather than the URL.
+ *
+ * They combine with the search box and with paging, and holding three pieces
+ * of state in the address bar means every keystroke is a navigation. Selecting
+ * several narrows: the API matches posts carrying all of them.
+ */
+export function TopicFilter({
+  selected,
+  onChange,
+}: {
+  selected: string[];
+  onChange: (topics: string[]) => void;
+}) {
+  const toggle = (topic: string) =>
+    onChange(
+      selected.includes(topic)
+        ? selected.filter((t) => t !== topic)
+        : [...selected, topic]
+    );
+
   return (
     <div className="flex flex-wrap gap-1.5">
-      <Link
-        href="/forum"
+      <button
+        type="button"
+        onClick={() => onChange([])}
         className={cn(
           "rounded-pill px-3 py-1.5 text-xs font-medium transition-colors",
-          !current ? "bg-canopy text-ink-invert" : "bg-surface-sunk text-ink-soft hover:text-ink"
+          selected.length === 0
+            ? "bg-canopy text-ink-invert"
+            : "bg-surface-sunk text-ink-soft hover:text-ink"
         )}
       >
         All
-      </Link>
-      {TOPICS.map((topic) => (
-        <Link
-          key={topic}
-          href={`/forum?topic=${topic}`}
-          className={cn(
-            "rounded-pill px-3 py-1.5 text-xs font-medium capitalize transition-colors",
-            current === topic ? "bg-canopy text-ink-invert" : "bg-surface-sunk text-ink-soft hover:text-ink"
-          )}
-        >
-          {topic}
-        </Link>
-      ))}
+      </button>
+      {TOPICS.map((topic) => {
+        const on = selected.includes(topic);
+        return (
+          <button
+            key={topic}
+            type="button"
+            aria-pressed={on}
+            onClick={() => toggle(topic)}
+            className={cn(
+              "rounded-pill px-3 py-1.5 text-xs font-medium capitalize transition-colors",
+              on
+                ? "bg-canopy text-ink-invert"
+                : "bg-surface-sunk text-ink-soft hover:text-ink"
+            )}
+          >
+            {topic}
+          </button>
+        );
+      })}
     </div>
   );
 }

@@ -4,13 +4,28 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { io, type Socket } from "socket.io-client";
-import { Loader2, Send, Sparkles, UserRound, Stethoscope } from "lucide-react";
+import {
+  Loader2,
+  Paperclip,
+  Send,
+  Sparkles,
+  UserRound,
+  Stethoscope,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { API_BASE } from "@/lib/config";
 import { cn } from "@/lib/utils";
-import type { AdvisoryMessage, AdvisorySession, User } from "@/lib/types";
+import type {
+  AdvisoryMessage,
+  AdvisorySession,
+  FieldSnapshot,
+  User,
+} from "@/lib/types";
 import { Button } from "@/components/ui/Button";
+import { uploadFiles } from "@/lib/session";
+import { FieldSnapshotCard } from "@/components/snapshot/FieldSnapshotCard";
+import { AttachFieldSnapshot } from "@/components/snapshot/AttachFieldSnapshot";
 
 const ROLE_META = {
   farmer: { label: "You", icon: UserRound },
@@ -24,6 +39,22 @@ const hasBengali = (text: string) => /[ঀ-৿]/.test(text);
 function Bubble({ message, isMine }: { message: AdvisoryMessage; isMine: boolean }) {
   const meta = ROLE_META[message.senderRole];
   const Icon = meta.icon;
+
+  if (message.messageType === "snapshot") {
+    let snapshot: FieldSnapshot | null = null;
+    try {
+      snapshot = JSON.parse(message.messageContent) as FieldSnapshot;
+    } catch {
+      snapshot = null;
+    }
+    if (snapshot) {
+      return (
+        <div className={cn("max-w-md", isMine && "ml-auto")}>
+          <FieldSnapshotCard snapshot={snapshot} />
+        </div>
+      );
+    }
+  }
 
   if (message.messageType === "image") {
     return (
@@ -80,6 +111,7 @@ export function ChatWindow({
   const [streaming, setStreaming] = useState("");
   const [connected, setConnected] = useState(false);
   const [socketError, setSocketError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const socketRef = useRef<Socket | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
@@ -177,17 +209,42 @@ export function ChatWindow({
     };
   }, [session._id]);
 
+  const emit = (messageType: "text" | "image" | "snapshot", messageContent: string) => {
+    socketRef.current?.emit("session:message", {
+      sessionId: session._id,
+      messageType,
+      messageContent,
+    });
+  };
+
   const send = (e: React.FormEvent) => {
     e.preventDefault();
     const text = draft.trim();
     if (!text || !socketRef.current) return;
-
-    socketRef.current.emit("session:message", {
-      sessionId: session._id,
-      messageType: "text",
-      messageContent: text,
-    });
+    emit("text", text);
     setDraft("");
+  };
+
+  /**
+   * Each file is its own message rather than one message with several images.
+   * A photograph of a leaf and a photograph of the whole plant are two
+   * observations, and an expert replies to them separately.
+   */
+  const attachFiles = async (files: FileList | null) => {
+    const chosen = Array.from(files ?? []).slice(0, 4);
+    if (!chosen.length) return;
+
+    setUploading(true);
+    try {
+      const uploaded = await uploadFiles(chosen, "advisory");
+      uploaded.forEach((file) => {
+        emit(file.fileType === "image" ? "image" : "text", file.url);
+      });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Upload failed");
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
@@ -236,7 +293,43 @@ export function ChatWindow({
           This conversation is closed.
         </p>
       ) : (
-        <form onSubmit={send} className="mt-4 flex items-end gap-2">
+        <form onSubmit={send} className="mt-4">
+          <div className="mb-2 flex flex-wrap items-center gap-2">
+            <AttachFieldSnapshot
+              disabled={!connected}
+              onAttach={(snapshot) => emit("snapshot", JSON.stringify(snapshot))}
+            />
+          </div>
+
+          <div className="flex items-end gap-2">
+          {/* A label rather than a button: clicking a file input directly is
+              what opens the picker, and wrapping it keeps that behaviour
+              without scripting the click. */}
+          <label
+            className={cn(
+              "flex h-12 w-12 shrink-0 cursor-pointer items-center justify-center rounded-card border border-line bg-surface text-ink-soft transition-colors hover:border-canopy hover:text-canopy",
+              (!connected || uploading) && "pointer-events-none opacity-60"
+            )}
+          >
+            <input
+              type="file"
+              accept="image/*,application/pdf"
+              multiple
+              className="sr-only"
+              disabled={!connected || uploading}
+              onChange={(e) => {
+                void attachFiles(e.target.files);
+                e.target.value = "";
+              }}
+            />
+            {uploading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Paperclip className="h-4 w-4" />
+            )}
+            <span className="sr-only">Attach a photo or file</span>
+          </label>
+
           <textarea
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
@@ -252,6 +345,7 @@ export function ChatWindow({
             <Send className="h-4 w-4" />
             <span className="sr-only">Send</span>
           </Button>
+          </div>
         </form>
       )}
 

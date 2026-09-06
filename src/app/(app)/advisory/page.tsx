@@ -5,9 +5,8 @@ import { MessagesSquare, Plus } from "lucide-react";
 import { serverFetch } from "@/lib/api";
 import type { AdvisorySession, User } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
-import { StatusBadge } from "@/components/advisory/StatusBadge";
+import { SessionList } from "@/components/advisory/SessionList";
 import { Unavailable } from "@/components/ui/Unavailable";
-import { timeAgo } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Advisory" };
 
@@ -70,45 +69,7 @@ export default async function AdvisoryPage() {
           ) : null}
         </div>
       ) : (
-        <ul className="space-y-3">
-          {list.map((session) => {
-            const last = session.chatHistory.at(-1);
-            return (
-              <li key={session._id}>
-                <Link
-                  href={`/advisory/${session._id}`}
-                  className="block rounded-card bg-surface p-5 card-shadow transition-transform duration-200 hover:-translate-y-0.5"
-                >
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <h3 className="min-w-0 flex-1 font-display text-base font-semibold tracking-tight">
-                      {session.problemStatement}
-                    </h3>
-                    <StatusBadge status={session.status} />
-                  </div>
-
-                  {last ? (
-                    <p className="mt-2 line-clamp-2 text-sm text-ink-soft">
-                      <span className="font-medium capitalize text-ink-faint">
-                        {last.senderRole === "ai" ? "Advisor" : last.senderRole}:
-                      </span>{" "}
-                      {last.messageContent}
-                    </p>
-                  ) : (
-                    <p className="mt-2 text-sm text-ink-faint">No replies yet</p>
-                  )}
-
-                  <p className="mt-3 flex items-center gap-3 text-xs text-ink-faint">
-                    <span>{timeAgo(session.createdAt)}</span>
-                    <span>· {session.chatHistory.length} messages</span>
-                    {session.attachedMediaUrls.length ? (
-                      <span>· {session.attachedMediaUrls.length} attachments</span>
-                    ) : null}
-                  </p>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+        <SessionList initial={list} />
       )}
     </div>
   );

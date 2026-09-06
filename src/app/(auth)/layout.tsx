@@ -13,7 +13,7 @@ export default async function AuthLayout({
 }: {
   children: React.ReactNode;
 }) {
-  if (await hasSession()) redirect("/overview");
+  if (await hasSession()) redirect("/fields");
 
   return (
     <div className="grid min-h-screen lg:grid-cols-[1fr_1.05fr]">

@@ -13,7 +13,7 @@ import { WeatherCard } from "@/components/field/WeatherCard";
 import { ActuatorControls } from "@/components/field/ActuatorControls";
 import { FieldInsight } from "@/components/field/FieldInsight";
 import { EditFieldDialog } from "@/components/field/EditFieldDialog";
-import { timeAgo } from "@/lib/utils";
+import { TimeAgo } from "@/components/ui/TimeAgo";
 
 export async function generateMetadata({
   params,
@@ -57,7 +57,7 @@ export default async function FieldDetailPage({
   return (
     <div className="px-6 py-8 lg:px-10 lg:py-10">
       <Link
-        href="/overview"
+        href="/fields"
         className="mb-6 inline-flex items-center gap-1.5 text-sm text-ink-soft transition-colors hover:text-ink"
       >
         <ArrowLeft className="h-4 w-4" />
@@ -98,7 +98,11 @@ export default async function FieldDetailPage({
                 </Badge>
               ) : (
                 <Badge tone="onDark">
-                  {latest ? `Last reading ${timeAgo(latest.ts)}` : "No readings yet"}
+                  {latest ? (
+                    <TimeAgo value={latest.ts} prefix="Last reading " />
+                  ) : (
+                    "No readings yet"
+                  )}
                 </Badge>
               )}
             </div>

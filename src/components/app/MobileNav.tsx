@@ -2,11 +2,19 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutGrid, MessagesSquare, Users2, UserRound } from "lucide-react";
+import { LayoutGrid, MessagesSquare, Sprout, Users2, UserRound } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { User } from "@/lib/types";
 
-const ITEMS = [
-  { href: "/overview", label: "Overview", icon: LayoutGrid },
+/**
+ * The first slot differs by role for the same reason the sidebar's does: an
+ * admin owns no fields, so their home is the platform summary, and a farmer's
+ * home is the fields themselves.
+ */
+const itemsFor = (role?: User["role"]) => [
+  role === "farmer"
+    ? { href: "/fields", label: "Fields", icon: Sprout }
+    : { href: "/overview", label: "Overview", icon: LayoutGrid },
   { href: "/advisory", label: "Advisory", icon: MessagesSquare },
   { href: "/forum", label: "Community", icon: Users2 },
   { href: "/profile", label: "Profile", icon: UserRound },
@@ -20,13 +28,14 @@ const ITEMS = [
  * inset, so on a phone with a home indicator the bar clears it instead of
  * tucking underneath.
  */
-export function MobileNav() {
+export function MobileNav({ role }: { role?: User["role"] }) {
   const pathname = usePathname();
+  const items = itemsFor(role);
 
   return (
     <nav className="fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-40 overflow-hidden rounded-xl border border-canopy-deep bg-canopy/95 backdrop-blur card-shadow lg:hidden">
       <ul className="grid grid-cols-4">
-        {ITEMS.map((item) => {
+        {items.map((item) => {
           const Icon = item.icon;
           const active = pathname.startsWith(item.href);
           return (

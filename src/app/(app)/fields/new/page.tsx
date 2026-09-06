@@ -9,7 +9,7 @@ export default function NewFieldPage() {
   return (
     <div className="mx-auto max-w-2xl px-6 py-8 lg:py-10">
       <Link
-        href="/overview"
+        href="/fields"
         className="mb-6 inline-flex items-center gap-1.5 text-sm text-ink-soft transition-colors hover:text-ink"
       >
         <ArrowLeft className="h-4 w-4" />

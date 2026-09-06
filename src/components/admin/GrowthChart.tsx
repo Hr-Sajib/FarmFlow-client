@@ -82,7 +82,11 @@ export function GrowthChart({
           <Area
             type="monotone"
             dataKey="cumulative"
-            stroke={color}
+            // Black rather than the series colour: on a panel this pale a
+            // mid-tone green or blue line reads as washed out. The colour stays
+            // in the fill beneath, so the two charts are still told apart at a
+            // glance without the line giving up contrast for it.
+            stroke="#000000"
             strokeWidth={2}
             fill={`url(#growth-${label})`}
             dot={false}

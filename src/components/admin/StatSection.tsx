@@ -39,16 +39,25 @@ export function StatSection({
   title,
   image,
   placement,
+  imageClass = "object-cover",
   scrim,
   chartImage,
   className,
   chart,
   split = "half",
+  aside,
+  footer,
   children,
 }: {
   title: string;
   image?: string;
   placement?: string;
+  /**
+   * How the section's image fills its box. `cover` crops it to the region;
+   * `contain` shows the whole illustration, which suits artwork that reads as
+   * an object rather than as a texture.
+   */
+  imageClass?: string;
   /** Gradient direction, matched to where the image sits. */
   scrim?: string;
   /** Puts the subject behind the chart instead of behind the whole section. */
@@ -59,13 +68,26 @@ export function StatSection({
   chart?: React.ReactNode;
   /** Share of the width the figures keep: half, or a narrow 20% column. */
   split?: keyof typeof SPLIT;
+  /**
+   * Sits in its own column beside the title and figures. Unlike `chart` it
+   * stops where that column stops, so a `footer` can run beneath it.
+   */
+  aside?: React.ReactNode;
+  /** Spans the full width under both columns. */
+  footer?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
     <section className={cn("relative overflow-hidden rounded-card bg-bark-soft", className)}>
       {image ? (
         <div className={cn("absolute", placement)}>
-          <Image src={image} alt="" fill sizes="600px" className="object-cover" />
+          <Image
+            src={image}
+            alt=""
+            fill
+            sizes="600px"
+            className={imageClass}
+          />
         </div>
       ) : null}
 
@@ -91,10 +113,27 @@ export function StatSection({
           chart && SPLIT[split].pad
         )}
       >
-        <h2 className="font-display text-lg font-semibold tracking-tight">
-          {title}
-        </h2>
-        <div className="mt-5">{children}</div>
+        <div className={cn(aside && "lg:grid lg:grid-cols-[38%_1fr] lg:gap-5")}>
+          <div className="min-w-0">
+            <h2 className="font-display text-lg font-semibold tracking-tight">
+              {title}
+            </h2>
+            <div className="mt-5">{children}</div>
+          </div>
+
+          {/* The title lives in the left column, so this one starts at the top
+              of the content box rather than below the heading. The negative
+              margins are the section's own padding less the 12px gap the
+              pinned charts use, which lands its top and right edges the same
+              distance from the section border as those. */}
+          {aside ? (
+            <div className="mt-5 lg:-mr-4 lg:-mt-4">
+              {aside}
+            </div>
+          ) : null}
+        </div>
+
+        {footer ? <div className="mt-5">{footer}</div> : null}
       </div>
 
       {/* Pinned rather than placed in the flow, so the gap to the section edge
@@ -104,38 +143,97 @@ export function StatSection({
           others. Below lg there is no room to sit beside anything, so it
           returns to the flow underneath. */}
       {chart ? (
-        <div
+        <ChartSurface
+          image={chartImage}
+          radius={SPLIT[split].radius}
           className={cn(
-            "relative mx-6 mb-6 h-40 overflow-hidden",
-            SPLIT[split].radius,
+            "mx-6 mb-6 h-40",
             "lg:absolute lg:inset-y-3 lg:mx-0 lg:mb-0 lg:h-auto",
             SPLIT[split].panel
           )}
         >
-          {chartImage ? (
-            <Image
-              src={chartImage}
-              alt=""
-              fill
-              sizes="600px"
-              className="object-cover"
-            />
-          ) : null}
-          {/* The wash sits over the image rather than being the panel's own
-              colour, so the two stack in the right order. The blur is heavy
-              enough to leave the illustration as colour and shape rather than
-              a picture — behind a chart it is a texture, and any detail sharp
-              enough to read competes with the plotted line. */}
-          <div
-            className={cn(
-              "absolute inset-0 bg-white/40",
-              chartImage && "backdrop-blur-[14px]"
-            )}
-          />
-          <div className="absolute inset-3">{chart}</div>
-        </div>
+          {chart}
+        </ChartSurface>
       ) : null}
     </section>
+  );
+}
+
+/**
+ * The chart's surface: image, wash, then the chart itself.
+ *
+ * The radius is repeated on each layer rather than left to overflow-hidden on
+ * the wrapper. The backdrop-filter establishes its own layer, and a rounded
+ * clip on an ancestor stops applying to siblings once that happens — so the
+ * image would square off exactly the corners the panel had rounded.
+ */
+function ChartSurface({
+  image,
+  radius,
+  className,
+  children,
+}: {
+  image?: string;
+  radius: string;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className={cn("relative overflow-hidden", radius, className)}>
+      {image ? (
+        <Image
+          src={image}
+          alt=""
+          fill
+          sizes="600px"
+          className={cn("object-cover", radius)}
+        />
+      ) : null}
+      {/* The wash sits over the image rather than being the panel's own colour,
+          so the two stack in that order. The blur leaves the illustration as
+          colour and shape: anything sharp enough to recognise is sharp enough
+          to compete with the plotted line. */}
+      <div
+        className={cn(
+          "absolute inset-0",
+          radius,
+          // Grey over an image, white where there is none. Over the dark
+          // section a white wash already resolves to a grey, so the two panels
+          // still read as the same surface — this only matches the one sitting
+          // on a pale illustration to it. The literal colour is a step darker
+          // than --color-line and a long way lighter than --color-ink-faint;
+          // there is no token between the two.
+          image ? "bg-[#c3cabf]/75 backdrop-blur-[14px]" : "bg-white/75"
+        )}
+      />
+      <div className="absolute inset-3">{children}</div>
+    </div>
+  );
+}
+
+/**
+ * A chart placed in the flow instead of pinned — for a section that needs
+ * something spanning the full width beneath it.
+ *
+ * The height is what sizes it: the width is whatever its column leaves, and
+ * the height would otherwise be dictated by the figures beside it. 14rem is
+ * above that, so the chart drives the row rather than being cut to fit it.
+ */
+export function ChartPanel({
+  image,
+  children,
+}: {
+  image?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <ChartSurface
+      image={image}
+      radius="rounded-tile"
+      className="min-h-[14rem] min-w-0 flex-1"
+    >
+      {children}
+    </ChartSurface>
   );
 }
 
@@ -154,7 +252,7 @@ export function Stat({
       <dt className="text-[0.6875rem] font-medium uppercase tracking-[0.12em] text-ink-invert/60">
         {label}
       </dt>
-      <dd className="tabular mt-1 font-display text-2xl font-semibold">
+      <dd className="tabular mt-1 font-display text-4xl font-semibold">
         {value.toLocaleString()}
       </dd>
       {hint ? (

@@ -109,7 +109,7 @@ export function EditFieldDialog({ field }: { field: Field }) {
     try {
       await apiCall(`/field/${field.fieldId}`, "DELETE");
       toast.success(`${field.fieldName} removed`);
-      router.push("/overview");
+      router.push("/fields");
       router.refresh();
     } catch (error) {
       toast.error(

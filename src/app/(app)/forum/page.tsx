@@ -1,30 +1,24 @@
 import type { Metadata } from "next";
-import { Users2 } from "lucide-react";
 
 import { serverFetch } from "@/lib/api";
-import type { Post, User } from "@/lib/types";
+import type { PostPage, User } from "@/lib/types";
 import { NewPostForm } from "@/components/forum/NewPostForm";
 import { PostFeed } from "@/components/forum/PostFeed";
-import { TopicFilter } from "@/components/forum/TopicFilter";
-import { Unavailable } from "@/components/ui/Unavailable";
 
 export const metadata: Metadata = { title: "Community" };
 
-export default async function ForumPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ topic?: string }>;
-}) {
-  const { topic } = await searchParams;
-
-  const [user, posts] = await Promise.all([
+/**
+ * The first page is rendered on the server so the feed arrives with posts in
+ * it; everything after that — searching, filtering, scrolling — is the client
+ * talking to the API directly.
+ */
+export default async function ForumPage() {
+  const [user, first] = await Promise.all([
     serverFetch<User>("/user/me"),
-    serverFetch<Post[]>(`/post${topic ? `?topic=${topic}` : ""}`),
+    serverFetch<PostPage>("/post"),
   ]);
 
   if (!user) return null;
-  // null means the request failed; [] means nobody has posted under this topic.
-  const list = posts;
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-8 lg:py-10">
@@ -39,26 +33,8 @@ export default async function ForumPage({
 
       <NewPostForm user={user} />
 
-      <div className="mt-5">
-        <TopicFilter current={topic ?? ""} />
-      </div>
-
-      {list === null ? (
-        <Unavailable what="the forum" />
-      ) : list.length === 0 ? (
-        <div className="mt-6 rounded-card border border-dashed border-line bg-surface/60 px-8 py-14 text-center">
-          <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-tile bg-canopy-tint text-canopy">
-            <Users2 className="h-5 w-5" strokeWidth={1.85} />
-          </span>
-          <h2 className="font-display text-lg font-semibold">Nothing here yet</h2>
-          <p className="mx-auto mt-1.5 max-w-xs text-sm text-ink-soft">
-            Be the first to post. A question about a crop you&apos;re growing is a
-            good place to start.
-          </p>
-        </div>
-      ) : (
-        <PostFeed posts={list} user={user} />
-      )}
+      {/* null here means the first request failed; the feed says so itself. */}
+      <PostFeed initial={first} user={user} />
     </div>
   );
 }

@@ -6,7 +6,7 @@ import type { Field, Reading, SeriesBucket } from "@/lib/types";
 import { Badge } from "@/components/ui/Badge";
 import { MetricTile } from "./MetricTile";
 import { Sparkline } from "./Sparkline";
-import { timeAgo } from "@/lib/utils";
+import { TimeAgo } from "@/components/ui/TimeAgo";
 
 const ENV_LABEL: Record<Field["environmentType"], string> = {
   greenhouse: "Greenhouse",
@@ -79,7 +79,7 @@ export function FieldCard({
             </Badge>
           ) : (
             <Badge tone="onDark">
-              {latest ? timeAgo(latest.ts) : "No data yet"}
+              {latest ? <TimeAgo value={latest.ts} /> : "No data yet"}
             </Badge>
           )}
         </div>

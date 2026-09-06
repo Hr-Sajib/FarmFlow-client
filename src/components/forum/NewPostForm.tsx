@@ -7,6 +7,9 @@ import Image from "next/image";
 import { toast } from "sonner";
 
 import { apiCall, uploadFiles } from "@/lib/session";
+import { AttachFieldSnapshot } from "@/components/snapshot/AttachFieldSnapshot";
+import { FieldSnapshotCard } from "@/components/snapshot/FieldSnapshotCard";
+import type { FieldSnapshot } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import type { User } from "@/lib/types";
@@ -21,6 +24,7 @@ export function NewPostForm({ user }: { user: User }) {
   const [text, setText] = useState("");
   const [image, setImage] = useState<string | null>(null);
   const [topics, setTopics] = useState<string[]>([]);
+  const [snapshot, setSnapshot] = useState<FieldSnapshot | null>(null);
   const [uploading, setUploading] = useState(false);
   const [posting, setPosting] = useState(false);
 
@@ -51,18 +55,27 @@ export function NewPostForm({ user }: { user: User }) {
     e.preventDefault();
     if (!text.trim()) return;
 
+    // Said here rather than only rejected by the server, so the requirement is
+    // visible before the work of writing is thrown away.
+    if (topics.length === 0) {
+      toast.error("Choose at least one topic so others can find this");
+      return;
+    }
+
     setPosting(true);
     try {
       await apiCall("/post", "POST", {
         postText: text.trim(),
         ...(image ? { postImage: image } : {}),
         postTopics: topics,
+        ...(snapshot ? { fieldSnapshot: snapshot } : {}),
       });
       setText("");
       setImage(null);
       setTopics([]);
+      setSnapshot(null);
       router.refresh();
-      toast.success("Posted to the community");
+      toast.success("Posted — it appears publicly once it passes review");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Could not post");
     } finally {
@@ -99,7 +112,24 @@ export function NewPostForm({ user }: { user: User }) {
         </div>
       ) : null}
 
-      <div className="mt-3 flex flex-wrap gap-1.5">
+      {snapshot ? (
+        <div className="relative mt-3">
+          <FieldSnapshotCard snapshot={snapshot} />
+          <button
+            type="button"
+            onClick={() => setSnapshot(null)}
+            className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-bark/70 text-ink-invert transition-colors hover:bg-bark"
+          >
+            <X className="h-3.5 w-3.5" />
+            <span className="sr-only">Remove the snapshot</span>
+          </button>
+        </div>
+      ) : null}
+
+      <p className="mt-4 text-[0.6875rem] font-medium uppercase tracking-[0.12em] text-ink-faint">
+        Topics · at least one
+      </p>
+      <div className="mt-1.5 flex flex-wrap gap-1.5">
         {TOPICS.map((topic) => (
           <button
             key={topic}
@@ -118,14 +148,19 @@ export function NewPostForm({ user }: { user: User }) {
         ))}
       </div>
 
-      <div className="mt-4 flex items-center justify-between gap-3">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
         <label className="inline-flex cursor-pointer items-center gap-1.5 text-sm text-ink-soft transition-colors hover:text-canopy">
           <input type="file" accept="image/*" className="sr-only" onChange={(e) => addImage(e.target.files)} />
           {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" strokeWidth={1.9} />}
           Photo
         </label>
 
-        <Button type="submit" disabled={posting || uploading || !text.trim()}>
+        <AttachFieldSnapshot onAttach={setSnapshot} disabled={posting} />
+
+        <Button
+          type="submit"
+          disabled={posting || uploading || !text.trim() || topics.length === 0}
+        >
           {posting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
           Post
         </Button>

@@ -24,6 +24,13 @@ const apiHost = (() => {
   }
 })();
 
+/**
+ * The one bucket uploads live in. Named exactly rather than by wildcard, so a
+ * bucket someone else owns cannot be routed through the optimizer.
+ */
+const s3Host =
+  process.env.NEXT_PUBLIC_S3_HOST ?? "farmflow-bucket.s3.ap-south-1.amazonaws.com";
+
 const nextConfig: NextConfig = {
   // Emits a self-contained server bundle, so the runtime image carries only
   // what the app actually imports instead of the whole node_modules tree.
@@ -54,28 +61,22 @@ const nextConfig: NextConfig = {
      * the protection.
      */
     dangerouslyAllowLocalIP: process.env.NODE_ENV === "development",
+    /**
+     * Deliberately narrow. `/_next/image` is a public endpoint, so every host
+     * listed here is a host any visitor can make this server fetch, decode and
+     * cache on their behalf. The previous list allowed `i.postimg.cc/**` (a
+     * public upload host) and `*.s3.*.amazonaws.com/**` (every S3 bucket in
+     * existence, including one an attacker creates) — which turned the image
+     * optimizer into an open proxy and supplied the attacker-controlled input
+     * that image-decoder CVEs need. Nothing in src/ referenced either.
+     */
     remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "i.postimg.cc",
-        pathname: "/**", // logo in Navbar
-      },
-      {
-        protocol: "https",
-        hostname: "api.empowernextgenbd.com",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "res.cloudinary.com",
-        pathname: "/**", // legacy uploads
-      },
       // Uploads are served through the API, which redirects to a short-lived
-      // signed S3 URL — the bucket itself stays private.
+      // signed URL; the bucket itself stays private.
       ...(apiHost ? [apiHost] : []),
       {
-        protocol: "https",
-        hostname: "*.s3.*.amazonaws.com",
+        protocol: "https" as const,
+        hostname: s3Host,
         pathname: "/**",
       },
     ],

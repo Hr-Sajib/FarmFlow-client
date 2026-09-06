@@ -25,7 +25,10 @@ const METRICS = [
   { key: "lightIntensity", label: "Light", unit: "lux", icon: Sun, decimals: 0 },
 ] as const;
 
-const POLL_MS = 5000;
+// Matches the sensor cadence. The authenticated dashboard needs no equivalent:
+// readings are pushed over the socket as they arrive, so it already moves at
+// whatever rate the hardware publishes.
+const POLL_MS = 2000;
 
 export function LiveReadout({ initial }: { initial: PublicReading | null }) {
   const [reading, setReading] = useState(initial);

@@ -22,7 +22,10 @@ import type { PublicReading, PublicStats } from "@/lib/types";
  * `publicFetch` deliberately reads no cookie: touching cookies() would opt this
  * page into dynamic rendering, and the landing page should be prerendered.
  */
-export const revalidate = 30;
+// The hero's first value is server-rendered and the client then polls every 2s.
+// At 30s that opening figure could be six pulses behind before the first poll
+// corrected it, which is visible on a page whose whole claim is live data.
+export const revalidate = 5;
 
 const STEPS = [
   {

@@ -2,13 +2,20 @@ import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatNumber } from "@/lib/utils";
 
-/** The stat pill from the reference dashboards: icon, label, value, unit. */
+/**
+ * The stat pill from the reference dashboards: icon, label, value, unit.
+ *
+ * `color` is optional and, when given, tints the icon in a small badge — the
+ * same colour that metric gets in the trend charts, so a card's readings and
+ * their own charts read as one system rather than a flat grey list.
+ */
 export function MetricTile({
   icon: Icon,
   label,
   value,
   unit,
   tone = "light",
+  color,
   className,
 }: {
   icon: LucideIcon;
@@ -16,6 +23,7 @@ export function MetricTile({
   value: number | null | undefined;
   unit: string;
   tone?: "light" | "dark";
+  color?: string;
   className?: string;
 }) {
   return (
@@ -32,7 +40,16 @@ export function MetricTile({
           tone === "light" ? "text-ink-faint" : "text-ink-invert/55"
         )}
       >
-        <Icon className="h-3.5 w-3.5" strokeWidth={1.85} />
+        {color ? (
+          <span
+            className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full"
+            style={{ background: `${color}1f`, color }}
+          >
+            <Icon className="h-3 w-3" strokeWidth={2.1} />
+          </span>
+        ) : (
+          <Icon className="h-3.5 w-3.5" strokeWidth={1.85} />
+        )}
         {label}
       </p>
       <p
